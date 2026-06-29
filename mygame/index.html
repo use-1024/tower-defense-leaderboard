@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保卫萝卜 - Defend the Carrot</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; font-family: 'Segoe UI', Arial, sans-serif;
+  overflow: hidden;
+}
+#game-wrapper {
+  position: relative; display: flex; flex-direction: column;
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5), 0 0 80px rgba(78,205,196,0.15);
+}
+#top-bar {
+  height: 56px; background: linear-gradient(180deg, #2d1b69 0%, #1a1145 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; border-bottom: 3px solid #ffd700;
+}
+.top-item {
+  display: flex; align-items: center; gap: 8px;
+  color: #fff; font-size: 16px; font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.top-item .icon { font-size: 22px; }
+.top-item .value { color: #ffd700; font-size: 18px; }
+#game-canvas {
+  display: block; cursor: crosshair;
+  background: #4a8f3c;
+}
+#bottom-panel {
+  height: 90px; background: linear-gradient(0deg, #2d1b69 0%, #1a1145 100%);
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  padding: 0 20px; border-top: 3px solid #ffd700;
+}
+.tower-btn {
+  width: 130px; height: 68px; border-radius: 12px;
+  border: 3px solid rgba(255,255,255,0.2); cursor: pointer;
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  transition: all 0.2s; position: relative; overflow: hidden;
+}
+.tower-btn:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.5); }
+.tower-btn.selected { border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.5); transform: translateY(-3px); }
+.tower-btn.disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.tower-btn .t-icon { font-size: 28px; }
+.tower-btn .t-info { display: flex; flex-direction: column; }
+.tower-btn .t-name { color: #fff; font-size: 12px; font-weight: bold; }
+.tower-btn .t-cost { color: #ffd700; font-size: 13px; font-weight: bold; }
+.tower-btn.bottle { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+.tower-btn.ice { background: linear-gradient(135deg, #3498db, #2980b9); }
+.tower-btn.rocket { background: linear-gradient(135deg, #e67e22, #d35400); }
+
+#start-btn {
+  padding: 10px 28px; border-radius: 25px; border: none;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: #fff; font-size: 16px; font-weight: bold; cursor: pointer;
+  transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 15px rgba(46,204,113,0.4);
+}
+#start-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(46,204,113,0.6); }
+#start-btn.hidden { display: none; }
+
+#overlay {
+  position: absolute; top: 56px; left: 0; right: 0; bottom: 90px;
+  display: flex; justify-content: center; align-items: center;
+  background: rgba(0,0,0,0.6); z-index: 10;
+}
+#overlay.hidden { display: none; }
+#overlay-content {
+  background: linear-gradient(135deg, #2d1b69, #1a1145);
+  border: 3px solid #ffd700; border-radius: 20px;
+  padding: 40px 50px; text-align: center;
+  box-shadow: 0 0 40px rgba(255,215,0,0.3);
+}
+#overlay-content h1 { color: #ffd700; font-size: 36px; margin-bottom: 10px; }
+#overlay-content h2 { color: #fff; font-size: 24px; margin-bottom: 20px; }
+#overlay-content p { color: #ccc; font-size: 16px; margin-bottom: 8px; }
+#overlay-content button {
+  margin-top: 20px; padding: 12px 40px; border-radius: 25px; border: none;
+  background: linear-gradient(135deg, #ffd700, #f39c12); color: #1a1145;
+  font-size: 18px; font-weight: bold; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+}
+#overlay-content button:hover { transform: scale(1.05); }
+
+/* ===== Main Menu ===== */
+#main-menu-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: center; align-items: center;
+  background: rgba(10,10,30,0.85); z-index: 20;
+}
+#main-menu-overlay.hidden { display: none; }
+#menu-content {
+  background: linear-gradient(160deg, #1e1145 0%, #2d1b69 40%, #1a1145 100%);
+  border: 3px solid #ffd700; border-radius: 24px;
+  padding: 40px 50px 35px; text-align: center;
+  box-shadow: 0 0 60px rgba(255,215,0,0.25), 0 0 120px rgba(120,80,255,0.15);
+  max-width: 400px;
+  animation: menuFadeIn 0.5s ease;
+}
+@keyframes menuFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#menu-content h1 {
+  color: #ffd700; font-size: 40px; margin-bottom: 4px;
+  text-shadow: 0 0 20px rgba(255,215,0,0.5);
+  letter-spacing: 2px;
+}
+#menu-content .subtitle {
+  color: #aaa; font-size: 15px; margin-bottom: 24px;
+  font-style: italic;
+}
+#menu-content .section-label {
+  color: #ccc; font-size: 14px; font-weight: bold;
+  margin-bottom: 10px; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.diff-buttons {
+  display: flex; gap: 12px; justify-content: center;
+  margin-bottom: 16px;
+}
+.diff-btn {
+  flex: 1; padding: 12px 8px; border-radius: 14px;
+  border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
+  font-size: 15px; font-weight: bold; color: #fff;
+  transition: all 0.25s;
+  background: rgba(255,255,255,0.06);
+}
+.diff-btn:hover {
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-2px);
+}
+.diff-btn.selected {
+  border-color: #ffd700;
+  background: rgba(255,215,0,0.15);
+  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+#diff-desc {
+  color: #aaa; font-size: 13px; margin-bottom: 22px;
+  min-height: 18px; transition: color 0.3s;
+}
+.menu-buttons {
+  display: flex; gap: 12px; justify-content: center;
+}
+.menu-btn {
+  padding: 12px 32px; border-radius: 25px; border: none;
+  font-size: 16px; font-weight: bold; cursor: pointer;
+  transition: all 0.2s;
+}
+.menu-btn.primary {
+  background: linear-gradient(135deg, #ffd700, #f39c12);
+  color: #1a1145; box-shadow: 0 4px 18px rgba(255,215,0,0.4);
+  flex: 2;
+}
+.menu-btn.primary:hover:not(.disabled) {
+  transform: scale(1.05); box-shadow: 0 6px 25px rgba(255,215,0,0.6);
+}
+.menu-btn.primary.disabled {
+  opacity: 0.4; cursor: not-allowed; box-shadow: none;
+}
+.menu-btn.secondary {
+  background: rgba(255,255,255,0.1);
+  color: #ccc; border: 1px solid rgba(255,255,255,0.2);
+  flex: 1;
+}
+.menu-btn.secondary:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+/* ===== 新增：关卡按钮（复用 diff-btn 样式） ===== */
+.level-btn {
+  flex: 1; padding: 12px 8px; border-radius: 14px;
+  border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
+  font-size: 15px; font-weight: bold; color: #fff;
+  transition: all 0.25s;
+  background: rgba(255,255,255,0.06);
+}
+.level-btn:hover {
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-2px);
+}
+.level-btn.selected {
+  border-color: #ffd700;
+  background: rgba(255,215,0,0.15);
+  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+
+#tower-info {
+  position: absolute; display: none; background: rgba(26,17,69,0.95);
+  border: 2px solid #ffd700; border-radius: 12px; padding: 12px 16px;
+  color: #fff; font-size: 13px; z-index: 5; min-width: 150px;
+  pointer-events: auto;
+}
+#tower-info .ti-name { font-size: 15px; font-weight: bold; color: #ffd700; margin-bottom: 6px; }
+#tower-info .ti-stat { margin: 3px 0; }
+#tower-info .ti-buttons { display: flex; gap: 8px; margin-top: 8px; }
+#tower-info button {
+  padding: 5px 14px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: bold; transition: all 0.15s;
+}
+#tower-info .upgrade-btn { background: #2ecc71; color: #fff; }
+#tower-info .upgrade-btn:hover { background: #27ae60; }
+#tower-info .upgrade-btn.disabled { background: #555; cursor: not-allowed; }
+#tower-info .sell-btn { background: #e74c3c; color: #fff; }
+#tower-info .sell-btn:hover { background: #c0392b; }
+
+#wave-announce {
+  position: absolute; top: 56px; left: 0; right: 0;
+  display: flex; justify-content: center; align-items: center;
+  pointer-events: none; z-index: 8;
+}
+#wave-announce span {
+  font-size: 42px; font-weight: bold; color: #ffd700;
+  text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 4px 8px rgba(0,0,0,0.5);
+  opacity: 0; transition: all 0.5s;
+}
+#wave-announce span.show { opacity: 1; }
+
+/* ===== Control Buttons ===== */
+.control-btn {
+  padding: 6px 14px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.1); color: #fff; font-size: 13px;
+  cursor: pointer; transition: all 0.2s; font-weight: bold;
+}
+.control-btn:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); }
+.control-btn.exit:hover { background: rgba(231,76,60,0.5); border-color: #e74c3c; }
+.control-btn.paused { background: rgba(241,196,15,0.4); border-color: #f1c40f; }
+
+/* ===== Countdown Display ===== */
+#countdown-display {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 64px; font-weight: bold; color: #ffd700;
+  text-shadow: 0 0 30px rgba(255,215,0,0.8), 0 4px 12px rgba(0,0,0,0.7);
+  pointer-events: none; z-index: 9; opacity: 0; transition: opacity 0.3s;
+}
+#countdown-display.show { opacity: 1; }
+
+/* ===== Pause Overlay ===== */
+#pause-overlay {
+  position: absolute; top: 56px; left: 0; right: 0; bottom: 90px;
+  display: flex; justify-content: center; align-items: center;
+  background: rgba(0,0,0,0.5); z-index: 7;
+}
+#pause-overlay.hidden { display: none; }
+#pause-content {
+  background: linear-gradient(135deg, #2d1b69, #1a1145);
+  border: 3px solid #ffd700; border-radius: 20px;
+  padding: 40px 50px; text-align: center;
+  box-shadow: 0 0 40px rgba(255,215,0,0.3);
+}
+#pause-content h1 { color: #ffd700; font-size: 36px; margin-bottom: 20px; }
+#pause-content button {
+  margin: 8px; padding: 12px 36px; border-radius: 25px; border: none;
+  background: linear-gradient(135deg, #ffd700, #f39c12); color: #1a1145;
+  font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+}
+#pause-content button:hover { transform: scale(1.05); }
+#pause-content button.danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; }
+</style>
+</head>
+<body>
+<div id="game-wrapper">
+  <div id="top-bar">
+    <div class="top-item"><span class="icon">🌊</span><span>波次:</span><span class="value" id="wave-num">0/8</span></div>
+    <div class="top-item"><span class="icon">💰</span><span>金币:</span><span class="value" id="gold-num">200</span></div>
+    <div class="top-item"><span class="icon">🥕</span><span>生命:</span><span class="value" id="lives-num">10</span></div>
+    <div class="top-item"><span class="icon">👾</span><span>怪物:</span><span class="value" id="monster-num">0</span></div>
+    <div style="display:flex;gap:8px;">
+      <button id="pause-btn" class="control-btn" onclick="togglePause()" title="暂停">⏸️ 暂停</button>
+      <button id="exit-btn" class="control-btn exit" onclick="confirmExit()" title="退出">🚪 退出</button>
+    </div>
+  </div>
+  <canvas id="game-canvas"></canvas>
+  <div id="bottom-panel">
+    <div class="tower-btn bottle" data-type="bottle" onclick="selectTower('bottle')">
+      <span class="t-icon">🍼</span>
+      <div class="t-info"><span class="t-name">瓶子塔</span><span class="t-cost">💰 100</span></div>
+    </div>
+    <div class="tower-btn ice" data-type="ice" onclick="selectTower('ice')">
+      <span class="t-icon">❄️</span>
+      <div class="t-info"><span class="t-name">冰冻星</span><span class="t-cost">💰 150</span></div>
+    </div>
+    <div class="tower-btn rocket" data-type="rocket" onclick="selectTower('rocket')">
+      <span class="t-icon">🚀</span>
+      <div class="t-info"><span class="t-name">火箭炮</span><span class="t-cost">💰 200</span></div>
+    </div>
+    <button id="start-btn" onclick="startWave()">开始下一波</button>
+  </div>
+  <div id="main-menu-overlay">
+    <div id="menu-content">
+      <h1>保卫萝卜</h1>
+      <div class="subtitle">Defend the Carrot</div>
+      <div class="section-label">选择难度</div>
+      <div class="diff-buttons">
+        <button class="diff-btn" id="diff-easy" onclick="selectDifficulty('easy')">简单</button>
+        <button class="diff-btn" id="diff-normal" onclick="selectDifficulty('normal')">普通</button>
+        <button class="diff-btn" id="diff-hard" onclick="selectDifficulty('hard')">困难</button>
+      </div>
+      <div id="diff-desc">请先选择难度</div>
+
+      <!-- ===== 新增：关卡选择 ===== -->
+      <div class="section-label" style="margin-top:12px;">选择关卡</div>
+      <div class="diff-buttons" style="margin-bottom:16px;">
+        <button class="level-btn selected" id="level-1" onclick="selectLevel(1)">第一关</button>
+        <button class="level-btn" id="level-2" onclick="selectLevel(2)">第二关</button>
+      </div>
+
+      <div class="menu-buttons" style="margin-top:20px;">
+        <button class="menu-btn primary disabled" id="menu-start-btn" onclick="startGameFromMenu()">开始游戏</button>
+        <button class="menu-btn secondary" onclick="exitGame()">退出</button>
+      </div>
+    </div>
+  </div>
+  <div id="overlay" class="hidden">
+    <div id="overlay-content"></div>
+  </div>
+  <div id="pause-overlay" class="hidden">
+    <div id="pause-content">
+      <h1>游戏暂停</h1>
+      <button onclick="togglePause()">继续游戏</button>
+      <button class="danger" onclick="confirmExit()">退出游戏</button>
+    </div>
+  </div>
+  <div id="countdown-display"></div>
+  <div id="tower-info">
+    <div class="ti-name" id="ti-name"></div>
+    <div class="ti-stat" id="ti-stats"></div>
+    <div class="ti-buttons">
+      <button class="upgrade-btn" id="ti-upgrade" onclick="upgradeTower()">升级</button>
+      <button class="sell-btn" onclick="sellTower()">出售</button>
+    </div>
+  </div>
+  <div id="wave-announce"><span id="wave-text"></span></div>
+</div>
+
+<!-- Config -->
+<script src="config/constants.js"></script>
+<script src="config/towers.js"></script>
+<script src="config/monsters.js"></script>
+<script src="config/waves.js"></script>
+<script src="config/map.js"></script>
+
+<!-- Game Source -->
+<script src="src/state.js"></script>
+<script src="src/utils.js"></script>
+<script src="src/path.js"></script>
+<script src="src/particles.js"></script>
+<script src="src/map.js"></script>
+<script src="src/towers.js"></script>
+<script src="src/monsters.js"></script>
+<script src="src/projectiles.js"></script>
+<script src="src/input.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/menu.js"></script>
+<script src="src/game.js"></script>
+</body>
+</html>

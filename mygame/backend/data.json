@@ -1,0 +1,34 @@
+{
+  "scores": [
+    {
+      "id": "mqzho6ixhsn5",
+      "player": "1",
+      "level": 1,
+      "wave": 8,
+      "gold": 287,
+      "lives": 5,
+      "difficulty": "hard",
+      "time": "2026/6/30 01:25:48"
+    },
+    {
+      "id": "mqzhac5iqipa",
+      "player": "猪猪",
+      "level": 1,
+      "wave": 8,
+      "gold": 159,
+      "lives": 14,
+      "difficulty": "easy",
+      "time": "2026/6/30 01:15:02"
+    },
+    {
+      "id": "mqzh2qy0rbm5",
+      "player": "利滚利",
+      "level": 1,
+      "wave": 8,
+      "gold": 124,
+      "lives": 15,
+      "difficulty": "easy",
+      "time": "2026/6/30 01:09:08"
+    }
+  ]
+}
