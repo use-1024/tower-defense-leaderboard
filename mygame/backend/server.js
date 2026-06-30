@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;  // Railway 动态端口
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -40,7 +40,6 @@ function writeData(data) {
 app.post('/api/score', (req, res) => {
   const { player, level, wave, gold, lives, difficulty } = req.body;
 
-  // 校验
   if (!player || player.trim() === '') {
     return res.status(400).json({ error: '请输入玩家名称' });
   }
@@ -140,18 +139,18 @@ app.get('/api/all', (req, res) => {
 });
 
 // ============================================================
-//  🆕 新增：托管前端静态文件
+//  🆕 托管前端静态文件（使用中间件方式）
 // ============================================================
 
 const frontendPath = path.join(__dirname, '..');
 app.use(express.static(frontendPath));
 
-// ⚠️ 修复：Express 5 使用 '/*' 而不是 '*'
-// 所有非 API 请求返回 index.html（支持前端路由）
-app.get('/*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(frontendPath, 'index.html'));
+// ✅ 中间件方式：所有非 API 请求返回 index.html
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
   }
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // ============================================================
