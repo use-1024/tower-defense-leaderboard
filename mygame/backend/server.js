@@ -164,8 +164,8 @@ app.post('/api/score', (req, res) => {
 //  启动服务器
 // ============================================================
 app.listen(PORT, () => {
-  console.log(`🚀 后端服务已启动`);
-  console.log(`📍 端口: ${PORT}`);
-  console.log(`📂 数据文件: ${DATA_FILE}`);
-  console.log(`🌐 CORS 允许: ${process.env.FRONTEND_URL || '*'}`);
+  console.log(`后端服务已启动`);
+  console.log(`端口: ${PORT}`);
+  console.log(`数据文件: ${DATA_FILE}`);
+  console.log(`CORS 允许: ${process.env.FRONTEND_URL || '*'}`);
 });

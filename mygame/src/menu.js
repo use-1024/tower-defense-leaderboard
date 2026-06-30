@@ -102,6 +102,21 @@ function exitGame() {
   window.close();
 }
 
+// ===================== 游戏规则控制 =====================
+function showRules() {
+  const overlay = document.getElementById('rules-overlay');
+  if (overlay) {
+    overlay.classList.remove('hidden');
+  }
+}
+
+function hideRules() {
+  const overlay = document.getElementById('rules-overlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+  }
+}
+
 // ===================== 暴露函数到全局 =====================
 window.selectDifficulty = selectDifficulty;
 window.selectLevel = selectLevel;
@@ -111,3 +126,5 @@ window.showMainMenu = showMainMenu;
 window.hideMainMenu = hideMainMenu;
 window.checkReadyToStart = checkReadyToStart;
 window.clearDifficultySelection = clearDifficultySelection;
+window.showRules = showRules;
+window.hideRules = hideRules;

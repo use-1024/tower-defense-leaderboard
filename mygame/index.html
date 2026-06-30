@@ -100,7 +100,7 @@ body {
   border: 3px solid #ffd700; border-radius: 24px;
   padding: 40px 50px 35px; text-align: center;
   box-shadow: 0 0 60px rgba(255,215,0,0.25), 0 0 120px rgba(120,80,255,0.15);
-  max-width: 400px;
+  max-width: 420px;
   animation: menuFadeIn 0.5s ease;
 }
 @keyframes menuFadeIn {
@@ -337,6 +337,79 @@ body {
   color: #aaa;
   padding: 20px 0;
 }
+
+/* ===== 游戏规则面板样式 ===== */
+#rules-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.75);
+  z-index: 25;
+  padding: 20px;
+}
+#rules-overlay.hidden { display: none; }
+
+#rules-content {
+  background: linear-gradient(160deg, #1e1145 0%, #2d1b69 40%, #1a1145 100%);
+  border: 2px solid #ffd700;
+  border-radius: 20px;
+  padding: 30px 35px;
+  max-width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+  color: #e0e0e0;
+  box-shadow: 0 0 60px rgba(255,215,0,0.2);
+  position: relative;
+  animation: menuFadeIn 0.3s ease;
+}
+#rules-content::-webkit-scrollbar {
+  width: 6px;
+}
+#rules-content::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+}
+#rules-content::-webkit-scrollbar-thumb {
+  background: rgba(255,215,0,0.3);
+  border-radius: 3px;
+}
+#rules-content .close-rules-btn {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 28px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+#rules-content .close-rules-btn:hover { color: #fff; }
+#rules-content h1 {
+  color: #ffd700;
+  font-size: 28px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+#rules-content ul {
+  margin-left: 0;
+  margin-bottom: 12px;
+  list-style: none;
+  padding: 0;
+}
+#rules-content ul li {
+  margin-bottom: 3px;
+  padding-left: 4px;
+}
+#rules-content .rule-section {
+  margin-bottom: 10px;
+}
+#rules-content .rule-section .rule-label {
+  color: #ffd700;
+  font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -393,12 +466,85 @@ body {
         <button class="level-btn selected" id="level-1" onclick="selectLevel(1)">第一关</button>
         <button class="level-btn" id="level-2" onclick="selectLevel(2)">第二关</button>
       </div>
-      <div class="menu-buttons" style="margin-top:20px;">
+
+      <!-- ===== 新增：游戏规则按钮 ===== -->
+      <div style="margin-top:14px; margin-bottom:14px;">
+        <button onclick="showRules()" style="
+          background: rgba(255,255,255,0.08);
+          color: #aaa;
+          border: 1px solid rgba(255,255,255,0.15);
+          padding: 8px 24px;
+          border-radius: 20px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.2s;
+          font-family: inherit;
+        " onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff';" 
+           onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#aaa';">
+          📖 游戏规则
+        </button>
+      </div>
+
+      <div class="menu-buttons" style="margin-top:0;">
         <button class="menu-btn primary disabled" id="menu-start-btn" onclick="startGameFromMenu()">开始游戏</button>
         <button class="menu-btn secondary" onclick="exitGame()">退出</button>
       </div>
     </div>
   </div>
+
+  <!-- ===== 游戏规则面板 ===== -->
+  <div id="rules-overlay" class="hidden">
+    <div id="rules-content">
+      <button class="close-rules-btn" onclick="hideRules()">✕</button>
+
+      <h1>🥕 游戏规则</h1>
+
+      <div style="font-size: 14px; line-height: 1.8; color: #ccc;">
+        <div class="rule-section">
+          <span class="rule-label">🎯 目标：</span>
+          建造炮塔，阻止怪物沿着固定路径前进吃掉终点的萝卜！
+        </div>
+
+        <div class="rule-section">
+          <span class="rule-label">🏗️ 炮塔：</span>
+        </div>
+        <ul>
+          <li>🍼 <strong style="color: #e74c3c;">瓶子塔</strong> — 基础攻击塔，稳定输出</li>
+          <li>❄️ <strong style="color: #3498db;">冰冻星</strong> — 减速敌人，控制节奏</li>
+          <li>🚀 <strong style="color: #e67e22;">火箭炮</strong> — 高伤害，有溅射效果</li>
+        </ul>
+
+        <div class="rule-section">
+          <span class="rule-label">👾 怪物（共6种）：</span>
+        </div>
+        <ul>
+          <li>🟢 <strong style="color: #2ecc71;">史莱姆</strong> — 基础单位</li>
+          <li>🟡 <strong style="color: #f1c40f;">飞毛腿</strong> — 速度快，会冲刺</li>
+          <li>🟣 <strong style="color: #9b59b6;">铁甲怪</strong> — 自带护盾，优先承受伤害</li>
+          <li>🔴 <strong style="color: #e74c3c;">大Boss</strong> — 死亡时召唤3~6个小怪</li>
+          <li>👻 <strong style="color: #8e44ad;">幽灵</strong> — 随机出现在路径中途</li>
+          <li>🔥 <strong style="color: #e67e22;">火怪</strong> — 死亡时自爆后变成史莱姆</li>
+        </ul>
+
+        <div class="rule-section">
+          <span class="rule-label">💎 障碍物：</span>
+          点击地图上的障碍物清除（石头3次、树木2次、花丛1次），可获得 <strong style="color: #ffd700;">20~40 金币</strong>。
+        </div>
+
+        <div class="rule-section">
+          <span class="rule-label">🏆 胜负 &amp; 排行榜：</span>
+          胜利条件 — 抵御所有波次；失败条件 — 生命值归零。
+          通关后可在胜利弹窗中输入名字提交成绩到 <strong style="color: #ffd700;">云端排行榜</strong>，
+          排名规则：<strong style="color: #fff;">波次越高越靠前，波次相同则金币多者优先</strong>。
+        </div>
+
+        <div style="margin-top: 14px; text-align: center; color: #ffd700; font-weight: bold; font-size: 15px;">
+          🍀 祝你好运，守护好你的萝卜！
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="overlay" class="hidden">
     <div id="overlay-content"></div>
   </div>
@@ -463,7 +609,6 @@ function loadLeaderboard() {
   listEl.innerHTML = '<div class="rank-loading">加载中...</div>';
   
   try {
-    // 使用全局 API_ENDPOINTS
     const url = (typeof API_ENDPOINTS !== 'undefined') 
       ? API_ENDPOINTS.LEADERBOARD + '?level=1&limit=10'
       : '/api/leaderboard?level=1&limit=10';
