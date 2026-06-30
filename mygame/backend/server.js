@@ -142,28 +142,24 @@ app.get('/api/all', (req, res) => {
 //  🆕 托管前端静态文件（自动检测路径）
 // ============================================================
 
-// 获取可能的前端路径
-const possiblePaths = [
-  path.join(__dirname, '..'),           // /app/mygame/backend -> /app/mygame
-  path.join(__dirname, '..', '..'),     // /app/backend -> /app
-  path.join(__dirname, '..', 'mygame'), // /app -> /app/mygame
-  __dirname,                             // 当前目录
-];
+// ============================================================
+//  🆕 托管前端静态文件
+// ============================================================
 
-let frontendPath = null;
-for (const p of possiblePaths) {
-  const testPath = path.join(p, 'index.html');
-  if (fs.existsSync(testPath)) {
-    frontendPath = p;
-    break;
+// ✅ 在 Railway 上，文件被解压到 /app，所有内容在 /app/mygame/ 下
+const frontendPath = '/app/mygame';
+
+// 如果本地开发，使用相对路径
+if (process.env.NODE_ENV !== 'production' || !fs.existsSync(frontendPath)) {
+  // 本地开发时，尝试相对路径
+  const localPath = path.join(__dirname, '..', 'mygame');
+  if (fs.existsSync(path.join(localPath, 'index.html'))) {
+    frontendPath = localPath;
   }
 }
 
-if (!frontendPath) {
-  frontendPath = path.join(__dirname, '..');
-}
-
 console.log('📁 前端文件路径:', frontendPath);
+console.log('📄 index.html 是否存在:', fs.existsSync(path.join(frontendPath, 'index.html')));
 
 app.use(express.static(frontendPath));
 
@@ -178,14 +174,4 @@ app.use((req, res, next) => {
     return next();
   }
   res.sendFile(path.join(frontendPath, 'index.html'));
-});
-
-// ============================================================
-//  启动服务器
-// ============================================================
-
-app.listen(PORT, () => {
-  console.log(`🏆 排行榜服务器已启动: http://localhost:${PORT}`);
-  console.log(`📊 数据文件: ${DATA_FILE}`);
-  console.log(`📁 前端文件路径: ${frontendPath}`);
 });
