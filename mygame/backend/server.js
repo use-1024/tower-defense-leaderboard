@@ -142,65 +142,66 @@ app.get('/api/all', (req, res) => {
 //  🆕 托管前端静态文件（调试模式）
 // ============================================================
 
-// ⚠️ 注意：这里不要重复声明 const fs = require('fs')！
-// fs 已经在文件顶部声明了
+// ============================================================
+//  🆕 托管前端静态文件（最终版）
+// ============================================================
 
-console.log('🔍 当前工作目录:', process.cwd());
-console.log('🔍 __dirname:', __dirname);
-
-// 列出 /app 目录内容（如果存在）
-try {
-  const appDir = '/app';
-  if (fs.existsSync(appDir)) {
-    console.log('📂 /app 目录内容:', fs.readdirSync(appDir));
-  }
-} catch (e) {
-  console.log('无法读取 /app:', e.message);
-}
-
-// 列出当前目录内容
-try {
-  console.log('📂 当前目录内容:', fs.readdirSync(__dirname));
-} catch (e) {
-  console.log('无法读取当前目录:', e.message);
-}
-
-// 查找 index.html
-function findIndexHtml(startPath) {
+// 打印详细的目录结构
+function printDirectoryStructure(dir, prefix = '', depth = 0) {
+  if (depth > 3) return;
   try {
-    const items = fs.readdirSync(startPath);
+    const items = fs.readdirSync(dir);
+    console.log(`${prefix}📂 ${dir} (${items.length} items)`);
     for (const item of items) {
-      const fullPath = path.join(startPath, item);
+      const fullPath = path.join(dir, item);
       try {
         const stat = fs.statSync(fullPath);
         if (stat.isDirectory()) {
-          const testPath = path.join(fullPath, 'index.html');
-          if (fs.existsSync(testPath)) {
-            return fullPath;
-          }
-          const result = findIndexHtml(fullPath);
-          if (result) return result;
+          printDirectoryStructure(fullPath, prefix + '  ', depth + 1);
+        } else {
+          console.log(`${prefix}  📄 ${item}`);
         }
-      } catch (e) {
-        // 忽略
-      }
+      } catch (e) {}
     }
   } catch (e) {
-    // 忽略
+    console.log(`${prefix}❌ 无法读取 ${dir}: ${e.message}`);
   }
-  return null;
 }
 
-let frontendPath = findIndexHtml('/app');
-if (!frontendPath) {
-  frontendPath = findIndexHtml(__dirname);
+console.log('🔍 ===== 目录结构 =====');
+printDirectoryStructure('/app');
+console.log('🔍 ====================');
+
+// 查找 index.html
+let frontendPath = null;
+const pathsToTry = [
+  '/app',
+  '/app/mygame',
+  '/app/mygame(1)',
+  '/app/backend/..',
+  path.join(__dirname),
+  path.join(__dirname, '..'),
+  path.join(__dirname, 'mygame'),
+];
+
+for (const p of pathsToTry) {
+  try {
+    const testPath = path.join(p, 'index.html');
+    if (fs.existsSync(testPath)) {
+      frontendPath = p;
+      console.log(`✅ 找到 index.html 在: ${frontendPath}`);
+      break;
+    }
+  } catch (e) {}
 }
+
 if (!frontendPath) {
+  console.log('❌ 未找到 index.html，使用默认路径');
   frontendPath = '/app';
 }
 
-console.log('📁 找到的前端文件路径:', frontendPath);
-console.log('📄 index.html 是否存在:', fs.existsSync(path.join(frontendPath, 'index.html')));
+console.log(`📁 前端文件路径: ${frontendPath}`);
+console.log(`📄 index.html 是否存在: ${fs.existsSync(path.join(frontendPath, 'index.html'))}`);
 
 app.use(express.static(frontendPath));
 
@@ -210,7 +211,11 @@ app.get('/', (req, res) => {
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).send('index.html not found at ' + indexPath);
+    res.status(404).send(`
+      <h1>404 - index.html not found</h1>
+      <p>查找路径: ${frontendPath}</p>
+      <p>文件是否存在: ${fs.existsSync(indexPath)}</p>
+    `);
   }
 });
 
@@ -223,15 +228,6 @@ app.use((req, res, next) => {
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).send('File not found: ' + req.path);
+    res.status(404).send(`File not found: ${req.path}`);
   }
-});
-
-// ============================================================
-//  启动服务器
-// ============================================================
-
-app.listen(PORT, () => {
-  console.log(`🏆 排行榜服务器已启动: http://localhost:${PORT}`);
-  console.log(`📊 数据文件: ${DATA_FILE}`);
 });
