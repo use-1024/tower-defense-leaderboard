@@ -143,12 +143,12 @@ app.get('/api/all', (req, res) => {
 //  🆕 新增：托管前端静态文件
 // ============================================================
 
-// 前端文件在 mygame/ 目录下，server.js 在 mygame/backend/ 下
 const frontendPath = path.join(__dirname, '..');
 app.use(express.static(frontendPath));
 
+// ⚠️ 修复：Express 5 使用 '/*' 而不是 '*'
 // 所有非 API 请求返回 index.html（支持前端路由）
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(frontendPath, 'index.html'));
   }
