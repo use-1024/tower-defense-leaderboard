@@ -4,7 +4,7 @@
   "description": "保卫萝卜排行榜后端",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "cd backend && node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
