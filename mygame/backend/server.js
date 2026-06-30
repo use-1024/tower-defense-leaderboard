@@ -139,13 +139,40 @@ app.get('/api/all', (req, res) => {
 });
 
 // ============================================================
-//  🆕 托管前端静态文件（使用中间件方式）
+//  🆕 托管前端静态文件（自动检测路径）
 // ============================================================
 
-const frontendPath = path.join(__dirname, '..');
+// 获取可能的前端路径
+const possiblePaths = [
+  path.join(__dirname, '..'),           // /app/mygame/backend -> /app/mygame
+  path.join(__dirname, '..', '..'),     // /app/backend -> /app
+  path.join(__dirname, '..', 'mygame'), // /app -> /app/mygame
+  __dirname,                             // 当前目录
+];
+
+let frontendPath = null;
+for (const p of possiblePaths) {
+  const testPath = path.join(p, 'index.html');
+  if (fs.existsSync(testPath)) {
+    frontendPath = p;
+    break;
+  }
+}
+
+if (!frontendPath) {
+  frontendPath = path.join(__dirname, '..');
+}
+
+console.log('📁 前端文件路径:', frontendPath);
+
 app.use(express.static(frontendPath));
 
-// ✅ 中间件方式：所有非 API 请求返回 index.html
+// 根路径处理
+app.get('/', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
+// 所有非 API 请求返回 index.html
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return next();
@@ -160,5 +187,5 @@ app.use((req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🏆 排行榜服务器已启动: http://localhost:${PORT}`);
   console.log(`📊 数据文件: ${DATA_FILE}`);
-  console.log(`📁 前端文件: ${frontendPath}`);
+  console.log(`📁 前端文件路径: ${frontendPath}`);
 });
