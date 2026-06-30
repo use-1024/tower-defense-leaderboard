@@ -1,6 +1,26 @@
 {
   "scores": [
     {
+      "id": "mqzl918e8694",
+      "player": "你好",
+      "level": 1,
+      "wave": 8,
+      "gold": 1100,
+      "lives": 14,
+      "difficulty": "easy",
+      "time": "2026/6/30 03:06:00"
+    },
+    {
+      "id": "mqzk2yatr3ch",
+      "player": "hello",
+      "level": 1,
+      "wave": 8,
+      "gold": 844,
+      "lives": 15,
+      "difficulty": "easy",
+      "time": "2026/6/30 02:33:17"
+    },
+    {
       "id": "mqzho6ixhsn5",
       "player": "1",
       "level": 1,
@@ -19,6 +39,16 @@
       "lives": 14,
       "difficulty": "easy",
       "time": "2026/6/30 01:15:02"
+    },
+    {
+      "id": "mqzjkhpsaev7",
+      "player": "这种",
+      "level": 1,
+      "wave": 8,
+      "gold": 144,
+      "lives": 15,
+      "difficulty": "easy",
+      "time": "2026/6/30 02:18:55"
     },
     {
       "id": "mqzh2qy0rbm5",

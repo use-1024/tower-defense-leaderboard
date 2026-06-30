@@ -11,15 +11,46 @@ function updateUI() {
   }
 }
 
-// ===================== 排行榜功能 =====================
-// 提交成绩并显示排行榜
+// ===================== 获取API地址 =====================
+function getApiUrl() {
+  const hostname = window.location.hostname;
+  
+  // 本地开发环境
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
+    return 'http://localhost:3000';
+  }
+  
+  // ===== 生产环境（Railway） =====
+  // ⚠️ 部署到 Railway 后，替换成你的实际地址！
+  // 格式：https://你的项目名.up.railway.app
+  return 'https://你的项目名.up.railway.app';
+}
+
+// ===================== 提交成绩 =====================
 function submitScoreAndShowRanking() {
   const input = document.getElementById('player-name-input');
-  const playerName = input ? input.value.trim() : '玩家';
+  const playerName = input ? input.value.trim() : '';
 
   if (!playerName || playerName === '') {
     alert('请输入你的名字！');
     return;
+  }
+
+  // 🔥 获取提交按钮
+  const submitBtn = document.getElementById('submit-score-btn');
+  
+  // 🔥 如果按钮已禁用，直接返回（防止重复点击）
+  if (submitBtn && submitBtn.disabled) {
+    console.log('⛔ 已经提交过了，请勿重复点击');
+    return;
+  }
+
+  // 🔥 立即禁用按钮
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ 提交中...';
+    submitBtn.style.opacity = '0.5';
+    submitBtn.style.cursor = 'not-allowed';
   }
 
   const scoreData = {
@@ -31,7 +62,9 @@ function submitScoreAndShowRanking() {
     difficulty: difficulty || 'normal'
   };
 
-  fetch('http://localhost:3000/api/score', {
+  const API_URL = getApiUrl();
+
+  fetch(`${API_URL}/api/score`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(scoreData)
@@ -39,25 +72,67 @@ function submitScoreAndShowRanking() {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
+        // ✅ 提交成功
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = '✅ 已提交';
+          submitBtn.style.background = 'linear-gradient(135deg,#27ae60,#2ecc71)';
+          submitBtn.style.opacity = '0.7';
+          submitBtn.style.cursor = 'default';
+        }
+        alert(`✅ ${data.message}\n排名：第 ${data.rank} 名`);
         showRankingOnly(data.rank);
       } else {
-        alert('提交失败: ' + (data.error || '未知错误'));
+        // ❌ 后端返回错误
+        alert(`ℹ️ ${data.message}`);
+        // 🔥 如果是"已提交过更好的成绩"，也禁用按钮（因为已经提交过了）
+        if (data.message && data.message.includes('已提交过更好的成绩')) {
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '✅ 已提交';
+            submitBtn.style.background = 'linear-gradient(135deg,#27ae60,#2ecc71)';
+            submitBtn.style.opacity = '0.7';
+            submitBtn.style.cursor = 'default';
+          }
+        } else {
+          // 其他错误，恢复按钮
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '🏆 提交成绩';
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+          }
+        }
       }
     })
     .catch(err => {
-      alert('无法连接到排行榜服务器，请确保后端已启动！\n错误: ' + err.message);
+      // 🌐 网络错误
+      alert(`❌ 无法连接到服务器！\n\n请确保后端已启动：\nhttp://localhost:3000\n\n错误：${err.message}`);
+      // 网络错误时恢复按钮（让用户稍后重试）
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🏆 提交成绩';
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+      }
     });
 }
 
-// 仅查看排行榜
+// ===================== 查看排行榜 =====================
 function showRankingOnly(myRank) {
   const container = document.getElementById('ranking-result');
   if (!container) return;
 
   const level = currentLevel || 1;
+  const API_URL = getApiUrl();
 
-  fetch(`http://localhost:3000/api/leaderboard?level=${level}&limit=10`)
-    .then(res => res.json())
+  container.innerHTML = `<p style="color:#aaa;">⏳ 加载排行榜中...</p>`;
+
+  fetch(`${API_URL}/api/leaderboard?level=${level}&limit=10`)
+    .then(res => {
+      if (!res.ok) throw new Error('网络请求失败');
+      return res.json();
+    })
     .then(data => {
       if (!data.scores || data.scores.length === 0) {
         container.innerHTML = `<p style="color:#aaa;">暂无排行榜数据，快来挑战吧！</p>`;
@@ -95,11 +170,11 @@ function showRankingOnly(myRank) {
       container.innerHTML = html;
     })
     .catch(err => {
-      container.innerHTML = `<p style="color:#e74c3c;">⚠️ 无法加载排行榜，请确保后端已启动: ${err.message}</p>`;
+      container.innerHTML = `<p style="color:#e74c3c;">⚠️ 无法加载排行榜: ${err.message}</p>`;
     });
 }
 
-// ===================== 原有 UI 函数 =====================
+// ===================== 显示覆盖层 =====================
 function showOverlay(type) {
   const overlay = document.getElementById('overlay');
   const content = document.getElementById('overlay-content');
@@ -113,7 +188,6 @@ function showOverlay(type) {
       <button onclick="restartGame()">重新开始</button>
     `;
   } else if (type === 'victory') {
-    // ===== 修改：胜利时展示提交排行榜的表单 =====
     content.innerHTML = `
       <h1>🎉 胜利 🎉</h1>
       <h2>萝卜安全了！</h2>
@@ -126,7 +200,7 @@ function showOverlay(type) {
                       text-align:center; width:200px;">
       </div>
       <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <button onclick="submitScoreAndShowRanking()" 
+        <button id="submit-score-btn" onclick="submitScoreAndShowRanking()" 
                 style="background:linear-gradient(135deg,#2ecc71,#27ae60); color:#fff; padding:10px 20px; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">
           🏆 提交成绩
         </button>
@@ -148,6 +222,7 @@ function hideOverlay() {
   document.getElementById('overlay').classList.add('hidden');
 }
 
+// ===================== 塔信息面板 =====================
 function showTowerInfoPanel(tower) {
   const panel = document.getElementById('tower-info');
   const def = TOWER_DEFS[tower.type];
