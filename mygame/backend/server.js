@@ -1,7 +1,7 @@
 // backend/server.js
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
+const fs = require('fs');        // ✅ 已经在这里声明了
 const path = require('path');
 
 const app = express();
@@ -139,17 +139,12 @@ app.get('/api/all', (req, res) => {
 });
 
 // ============================================================
-//  🆕 托管前端静态文件（自动检测路径）
-// ============================================================
-
-// ============================================================
 //  🆕 托管前端静态文件（调试模式）
 // ============================================================
 
-const fs = require('fs');
-const path = require('path');
+// ⚠️ 注意：这里不要重复声明 const fs = require('fs')！
+// fs 已经在文件顶部声明了
 
-// 打印当前目录内容，帮助我们找到 index.html
 console.log('🔍 当前工作目录:', process.cwd());
 console.log('🔍 __dirname:', __dirname);
 
@@ -179,12 +174,10 @@ function findIndexHtml(startPath) {
       try {
         const stat = fs.statSync(fullPath);
         if (stat.isDirectory()) {
-          // 检查目录下是否有 index.html
           const testPath = path.join(fullPath, 'index.html');
           if (fs.existsSync(testPath)) {
             return fullPath;
           }
-          // 递归查找
           const result = findIndexHtml(fullPath);
           if (result) return result;
         }
@@ -232,4 +225,13 @@ app.use((req, res, next) => {
   } else {
     res.status(404).send('File not found: ' + req.path);
   }
+});
+
+// ============================================================
+//  启动服务器
+// ============================================================
+
+app.listen(PORT, () => {
+  console.log(`🏆 排行榜服务器已启动: http://localhost:${PORT}`);
+  console.log(`📊 数据文件: ${DATA_FILE}`);
 });
