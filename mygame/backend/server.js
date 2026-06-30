@@ -142,6 +142,10 @@ app.get('/api/all', (req, res) => {
 //  🆕 托管前端静态文件
 // ============================================================
 
+// ============================================================
+//  🆕 托管前端静态文件
+// ============================================================
+
 // ✅ server.js 在 /app/backend/ 下，index.html 在 /app/ 下
 // __dirname = /app/backend
 // path.join(__dirname, '..') = /app
@@ -163,41 +167,22 @@ if (!fs.existsSync(path.join(finalPath, 'index.html'))) {
 
 console.log('📁 最终前端文件路径:', finalPath);
 
+// ✅ 确保 API 路由优先
+// 注意：API 路由已经在上方定义了（/api/score, /api/leaderboard, /api/all）
+
+// 托管静态文件（CSS、JS、图片等）
 app.use(express.static(finalPath));
 
-// 根路径处理
-app.get('/', (req, res) => {
-  const indexPath = path.join(finalPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).send(`
-      <h1>404 - index.html not found</h1>
-      <p>查找路径: ${finalPath}</p>
-      <p>文件是否存在: ${fs.existsSync(indexPath)}</p>
-    `);
-  }
-});
-
-// 所有非 API 请求返回 index.html
-app.use((req, res, next) => {
+// ✅ 所有非 API 请求返回 index.html（放在最后，作为兜底）
+app.get('*', (req, res) => {
+  // 如果是 API 请求，跳过（由上面的 API 路由处理）
   if (req.path.startsWith('/api')) {
-    return next();
+    return res.status(404).json({ error: 'API 未找到' });
   }
   const indexPath = path.join(finalPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).send(`File not found: ${req.path}`);
+    res.status(404).send(`index.html not found at ${indexPath}`);
   }
-});
-
-// ============================================================
-//  启动服务器
-// ============================================================
-
-app.listen(PORT, () => {
-  console.log(`🏆 排行榜服务器已启动: http://localhost:${PORT}`);
-  console.log(`📊 数据文件: ${DATA_FILE}`);
-  console.log(`📁 前端文件路径: ${finalPath}`);
 });
