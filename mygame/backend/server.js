@@ -34,10 +34,44 @@ function writeData(data) {
 }
 
 // ============================================================
+//  📥 请求日志中间件（放在所有路由之前）
+// ============================================================
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path}`);
+  next();
+});
+
+// ============================================================
 //  API 路由
 // ============================================================
 
+// ----- 调试接口（放在最前面） -----
+app.get('/api/all', (req, res) => {
+  console.log('✅ /api/all 被调用');
+  res.json(readData());
+});
+
+// ----- 获取排行榜 -----
+app.get('/api/leaderboard', (req, res) => {
+  console.log('✅ /api/leaderboard 被调用');
+  const level = parseInt(req.query.level) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+
+  const data = readData();
+  let scores = data.scores
+    .filter(s => s.level === level)
+    .sort((a, b) => {
+      if (b.wave !== a.wave) return b.wave - a.wave;
+      return b.gold - a.gold;
+    })
+    .slice(0, limit);
+
+  res.json({ level, scores });
+});
+
+// ----- 提交成绩 -----
 app.post('/api/score', (req, res) => {
+  console.log('✅ /api/score 被调用');
   const { player, level, wave, gold, lives, difficulty } = req.body;
 
   if (!player || player.trim() === '') {
@@ -116,39 +150,11 @@ app.post('/api/score', (req, res) => {
   });
 });
 
-// ----- 获取排行榜 -----
-app.get('/api/leaderboard', (req, res) => {
-  const level = parseInt(req.query.level) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-
-  const data = readData();
-  let scores = data.scores
-    .filter(s => s.level === level)
-    .sort((a, b) => {
-      if (b.wave !== a.wave) return b.wave - a.wave;
-      return b.gold - a.gold;
-    })
-    .slice(0, limit);
-
-  res.json({ level, scores });
-});
-
-// ----- 调试接口 -----
-app.get('/api/all', (req, res) => {
-  res.json(readData());
-});
-
-// ============================================================
-//  🆕 托管前端静态文件
-// ============================================================
-
 // ============================================================
 //  🆕 托管前端静态文件
 // ============================================================
 
 // ✅ server.js 在 /app/backend/ 下，index.html 在 /app/ 下
-// __dirname = /app/backend
-// path.join(__dirname, '..') = /app
 const frontendPath = path.join(__dirname, '..');
 
 console.log('📁 前端文件路径:', frontendPath);
@@ -157,25 +163,24 @@ console.log('📄 index.html 是否存在:', fs.existsSync(path.join(frontendPat
 // 如果 index.html 不存在，尝试其他路径
 let finalPath = frontendPath;
 if (!fs.existsSync(path.join(finalPath, 'index.html'))) {
-  // 尝试 /app
   finalPath = '/app';
+  console.log('📁 尝试路径 /app');
 }
 if (!fs.existsSync(path.join(finalPath, 'index.html'))) {
-  // 尝试当前目录
   finalPath = __dirname;
+  console.log('📁 尝试路径 __dirname');
 }
 
 console.log('📁 最终前端文件路径:', finalPath);
+console.log('📄 index.html 是否存在:', fs.existsSync(path.join(finalPath, 'index.html')));
 
-// ✅ 确保 API 路由优先
-// 注意：API 路由已经在上方定义了（/api/score, /api/leaderboard, /api/all）
-
-// 托管静态文件（CSS、JS、图片等）
+// 托管静态文件
 app.use(express.static(finalPath));
 
-// ✅ 所有非 API 请求返回 index.html（放在最后，作为兜底）
+// ✅ 所有非 API 请求返回 index.html（作为兜底）
 app.get('*', (req, res) => {
-  // 如果是 API 请求，跳过（由上面的 API 路由处理）
+  console.log(`📄 处理前端路由: ${req.path}`);
+  // 如果是 API 请求，返回 404
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API 未找到' });
   }
@@ -185,4 +190,14 @@ app.get('*', (req, res) => {
   } else {
     res.status(404).send(`index.html not found at ${indexPath}`);
   }
+});
+
+// ============================================================
+//  启动服务器
+// ============================================================
+
+app.listen(PORT, () => {
+  console.log(`🏆 排行榜服务器已启动: http://localhost:${PORT}`);
+  console.log(`📊 数据文件: ${DATA_FILE}`);
+  console.log(`📁 前端文件路径: ${finalPath}`);
 });
