@@ -7,7 +7,11 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// CORS配置 - 允许前端域名访问
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true
+}));
 app.use(express.json());
 
 const DATA_FILE = path.join(__dirname, 'data.json');
@@ -34,10 +38,11 @@ function writeData(data) {
 }
 
 // ============================================================
-//  📥 请求日志中间件（放在所有路由之前）
+//  📥 请求日志中间件
 // ============================================================
 app.use((req, res, next) => {
   console.log(`📥 ${req.method} ${req.path}`);
+  console.log('📦 Body:', req.body);
   next();
 });
 
@@ -45,7 +50,12 @@ app.use((req, res, next) => {
 //  API 路由
 // ============================================================
 
-// ----- 调试接口（放在最前面） -----
+// ----- 健康检查 -----
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ----- 获取所有数据（调试用） -----
 app.get('/api/all', (req, res) => {
   console.log('✅ /api/all 被调用');
   res.json(readData());
@@ -151,65 +161,11 @@ app.post('/api/score', (req, res) => {
 });
 
 // ============================================================
-//  🆕 托管前端静态文件
+//  启动服务器
 // ============================================================
-
-// ============================================================
-//  🆕 托管前端静态文件
-// ============================================================
-
-// ✅ 当 Root Directory = mygame/backend 时
-// __dirname = /app (backend 目录)
-// 但 index.html 在 mygame/ 目录下，需要找到它
-
-// 尝试多个可能的路径
-const possiblePaths = [
-  '/app/mygame',           // Railway 上的路径
-  '/app/../mygame',        // 相对路径
-  path.join(__dirname, '..', 'mygame'),  // 相对于 backend
-  path.join(__dirname, '..'),            // 上一级
-  '/app',                  // 根目录
-  __dirname,               // 当前目录
-];
-
-let finalPath = null;
-for (const p of possiblePaths) {
-  try {
-    const testPath = path.join(p, 'index.html');
-    console.log(`🔍 检查路径: ${testPath}`);
-    if (fs.existsSync(testPath)) {
-      finalPath = p;
-      console.log(`✅ 找到 index.html 在: ${finalPath}`);
-      break;
-    }
-  } catch (e) {
-    console.log(`❌ 路径错误: ${p}`);
-  }
-}
-
-if (!finalPath) {
-  console.log('❌ 所有路径都找不到 index.html！');
-  finalPath = '/app';
-}
-
-console.log('📁 最终前端文件路径:', finalPath);
-console.log('📄 index.html 是否存在:', fs.existsSync(path.join(finalPath, 'index.html')));
-
-app.use(express.static(finalPath));
-
-// ✅ 所有非 API 请求返回 index.html
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API 未找到' });
-  }
-  const indexPath = path.join(finalPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).send(`
-      <h1>404 - index.html not found</h1>
-      <p>查找路径: ${finalPath}</p>
-      <p>完整路径: ${indexPath}</p>
-    `);
-  }
+app.listen(PORT, () => {
+  console.log(`🚀 后端服务已启动`);
+  console.log(`📍 端口: ${PORT}`);
+  console.log(`📂 数据文件: ${DATA_FILE}`);
+  console.log(`🌐 CORS 允许: ${process.env.FRONTEND_URL || '*'}`);
 });
