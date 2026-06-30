@@ -8,7 +8,7 @@ const imgTowerIce = new Image();
 imgTowerIce.src = 'assets/ice.png';
 
 const imgTowerRocket = new Image();
-imgTowerRocket.src = 'assets/fire.png';  // 你写的是 fire.png
+imgTowerRocket.src = 'assets/fire.png';
 
 function findTarget(tower) {
   let best = null, bestDist = -1;
@@ -37,26 +37,21 @@ function fireProjectile(tower, target) {
   });
 }
 
-// 新代码（通过 dealDamageToMonster）
 function hitMonster(proj) {
   const m = proj.target;
   
-  // Tank 有护盾时，伤害先扣护盾，护盾碎了才扣血
   dealDamageToMonster(m, proj.damage);
   
-  // ===== 减速效果（即使有护盾也能被减速） =====
   if (proj.slowFactor > 0 && m.hp > 0) {
     m.slowTimer = proj.slowDuration;
     m.slowFactor = proj.slowFactor;
   }
   
-  // ===== 溅射伤害 =====
   if (proj.splash > 0) {
     for (const other of monsters) {
       if (other === m || other.hp <= 0) continue;
       const dx = other.x - m.x, dy = other.y - m.y;
       if (Math.sqrt(dx*dx+dy*dy) <= proj.splash) {
-        // 溅射伤害也使用统一函数
         dealDamageToMonster(other, proj.damage * 0.5);
       }
     }
@@ -89,7 +84,6 @@ function drawTowers() {
     ctx.translate(x, y);
     ctx.scale(scale, scale);
 
-    // ===== 使用图片绘制塔 =====
     let img = null;
     if (t.type === 'bottle') {
       img = imgTowerBottle;
@@ -100,7 +94,6 @@ function drawTowers() {
     }
 
     if (img && img.complete && img.naturalWidth > 0) {
-      // 图片居中绘制（瓶子塔 40×48，其他塔 48×48）
       let w = 48, h = 48;
       if (t.type === 'bottle') {
         w = 40;
@@ -108,7 +101,6 @@ function drawTowers() {
       }
       ctx.drawImage(img, -w/2, -h/2, w, h);
     } else {
-      // ===== 备用方案：Canvas 绘制 =====
       if (t.type === 'bottle') {
         drawBottleTower(0, 0, t.level);
       } else if (t.type === 'ice') {
@@ -118,7 +110,6 @@ function drawTowers() {
       }
     }
 
-    // ===== 等级星星（始终用 Canvas 绘制） =====
     if (t.level > 1) {
       ctx.fillStyle = '#ffd700';
       ctx.font = '10px Arial';
@@ -131,7 +122,6 @@ function drawTowers() {
   }
 }
 
-// ===== 备用 Canvas 绘制函数（图片加载失败时使用） =====
 function drawBottleTower(x, y, level) {
   ctx.fillStyle = '#c0392b';
   ctx.beginPath();

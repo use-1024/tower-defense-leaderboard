@@ -21,7 +21,6 @@ function init() {
   canvas.height = H;
   ctx = canvas.getContext('2d');
 
-  // ===== 使用函数计算路径 =====
   recalculatePath();
 
   initMapState();
@@ -71,14 +70,11 @@ function update(dt) {
   updateProjectiles(dt);
   updateParticles(dt);
 
-  // 检查当前波次是否全部消灭
   if (gameState === 'playing' && spawnQueue.length === 0 && monsters.length === 0) {
     if (currentWave >= totalWaves) {
-      // 所有波次完成，胜利
       gameState = 'victory';
       showOverlay('victory');
     } else {
-      // 进入波次间隔，开始倒计时
       gameState = 'between_waves';
       betweenWavesTimer = BETWEEN_WAVES_DELAY;
       document.getElementById('start-btn').classList.add('hidden');
@@ -90,12 +86,10 @@ function update(dt) {
 }
 
 function updateBetweenWaves(dt) {
-  // 更新倒计时
   betweenWavesTimer -= dt;
   updateCountdownDisplay();
 
   if (betweenWavesTimer <= 0) {
-    // 倒计时结束，自动开始下一波
     startNextWave();
   }
 }
@@ -128,7 +122,6 @@ function startWave() {
   startNextWave();
 }
 
-// ===== 第五步：修改 startNextWave，使用动态波次 =====
 function startNextWave() {
   currentWave++;
   if (currentWave > totalWaves) return;
@@ -137,7 +130,6 @@ function startNextWave() {
   hideTowerInfo();
   document.getElementById('countdown-display').classList.remove('show');
 
-  // 根据当前关卡选择波次
   const waves = currentLevel === 1 ? LEVEL1_WAVES : LEVEL2_WAVES;
   const waveDef = waves[currentWave - 1];
   spawnQueue = [];
@@ -146,7 +138,6 @@ function startNextWave() {
       spawnQueue.push(group.type);
     }
   }
-  // 随机打乱生成顺序
   for (let i = spawnQueue.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [spawnQueue[i], spawnQueue[j]] = [spawnQueue[j], spawnQueue[i]];
@@ -159,16 +150,13 @@ function startNextWave() {
   updateUI();
 }
 
-// ===== 第五步：修改 startGame，接收关卡参数，并重新计算路径 =====
 function startGame(diff, level) {
   difficulty = diff || 'normal';
   currentLevel = level || 1;
   const config = DIFFICULTY_CONFIG[difficulty];
 
-  // ===== 关键：重新计算路径，确保使用当前关卡的路径 =====
   recalculatePath();
 
-  // 根据关卡加载对应的波次
   const waves = currentLevel === 1 ? LEVEL1_WAVES : LEVEL2_WAVES;
   totalWaves = waves.length;
 
@@ -185,7 +173,6 @@ function startGame(diff, level) {
   initMapState();
   gameState = 'between_waves';
 
-  // 隐藏手动开始按钮，所有波次都通过倒计时自动开始
   document.getElementById('start-btn').classList.add('hidden');
   document.getElementById('pause-btn').classList.remove('paused');
   document.getElementById('pause-btn').innerHTML = '⏸️ 暂停';
@@ -195,12 +182,10 @@ function startGame(diff, level) {
   updateCountdownDisplay();
 }
 
-// 保留旧函数名以兼容
 function startGameFromMainMenu(diff) {
   startGame(diff, 1);
 }
 
-// ===== 第五步：修改 restartGame =====
 function restartGame() {
   hideOverlay();
   startGame(difficulty, currentLevel);
@@ -227,7 +212,6 @@ function togglePause() {
 
 // ===================== EXIT FUNCTIONALITY =====================
 function confirmExit() {
-  // 关闭暂停界面（如果打开）
   if (isPaused) {
     isPaused = false;
     document.getElementById('pause-btn').classList.remove('paused');
@@ -235,7 +219,6 @@ function confirmExit() {
     document.getElementById('pause-overlay').classList.add('hidden');
   }
 
-  // 显示退出确认
   const overlay = document.getElementById('overlay');
   const content = document.getElementById('overlay-content');
   overlay.classList.remove('hidden');
@@ -259,7 +242,6 @@ function exitToMenu() {
   document.getElementById('countdown-display').classList.remove('show');
   document.getElementById('start-btn').classList.add('hidden');
 
-  // 重置游戏状态
   gold = 200; lives = 10; maxLives = 10; currentWave = 0; totalWaves = 0;
   towers = []; monsters = []; projectiles = []; particles = [];
   spawnQueue = []; spawnTimer = 0;
@@ -270,4 +252,21 @@ function exitToMenu() {
   showMainMenu();
   updateUI();
 }
+
+// ===================== 暴露函数到全局 =====================
+window.init = init;
+window.startWave = startWave;
+window.startGame = startGame;
+window.startGameFromMainMenu = startGameFromMainMenu;
+window.restartGame = restartGame;
+window.togglePause = togglePause;
+window.confirmExit = confirmExit;
+window.exitToMenu = exitToMenu;
+window.recalculatePath = recalculatePath;
+window.showMainMenu = showMainMenu;
+window.hideMainMenu = hideMainMenu;
+window.hideOverlay = hideOverlay;
+window.announceWave = announceWave;
+window.updateUI = updateUI;
+
 window.addEventListener('load', init);

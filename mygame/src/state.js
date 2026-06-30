@@ -23,5 +23,5 @@ const BETWEEN_WAVES_DELAY = 10; // 10秒后自动开始下一波
 // 暂停状态
 let isPaused = false;
 
-// ===== 第五步：多地图 =====
+// 多地图
 let currentLevel = 1;

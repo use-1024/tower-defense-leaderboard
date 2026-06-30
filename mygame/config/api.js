@@ -8,14 +8,13 @@ const getApiBaseUrl = () => {
   }
   
   // 生产环境：使用Railway后端地址
-  // ✅ 已替换为你的真实后端地址
   return 'https://tower-defense-leaderboard-production.up.railway.app';
 };
 
-export const API_BASE_URL = getApiBaseUrl();
+const API_BASE_URL = getApiBaseUrl();
 
 // API接口地址
-export const API_ENDPOINTS = {
+const API_ENDPOINTS = {
   HEALTH: `${API_BASE_URL}/api/health`,
   ALL: `${API_BASE_URL}/api/all`,
   LEADERBOARD: `${API_BASE_URL}/api/leaderboard`,

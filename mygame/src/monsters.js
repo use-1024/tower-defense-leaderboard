@@ -38,7 +38,6 @@ function spawnMonster(type) {
   const config = DIFFICULTY_CONFIG[difficulty];
   const hpScale = (1 + (currentWave - 1) * 0.12) * config.hpMult;
 
-  // ===== Ghost: 在随机位置出现 =====
   let startX, startY, startDist;
   if (type === 'ghost') {
     const randomProgress = Math.random() * 0.8;
@@ -66,24 +65,18 @@ function spawnMonster(type) {
     slowTimer: 0,
     slowFactor: 1,
     bobPhase: Math.random() * Math.PI * 2,
-
-    // ===== 行为相关属性 =====
     sprintTimer: 0,
     isSprinting: false,
     sprintCooldown: 0,
-
-    // ===== Tank: 护盾 =====
     shieldActive: true,
-    shieldHP: 0,           // 护盾血量
-    maxShieldHP: 0,        // 护盾最大血量
-
+    shieldHP: 0,
+    maxShieldHP: 0,
     hasSummoned: false,
     summonCooldown: 0,
     isInvisible: false,
     hasExploded: false
   };
 
-  // ===== Tank: 护盾血量 = 最大血量的 50% =====
   if (type === 'tank') {
     monster.shieldHP = Math.round(monster.maxHp * 0.5);
     monster.maxShieldHP = Math.round(monster.maxHp * 0.5);
@@ -98,15 +91,11 @@ function updateMonsters(dt) {
     const m = monsters[i];
     let speed = m.speed;
 
-    // ===== 减速效果 =====
     if (m.slowTimer > 0) {
       speed *= m.slowFactor;
       m.slowTimer -= dt;
     }
 
-    // =============================================
-    // ===== 1. Runner: 冲刺行为 =====
-    // =============================================
     if (m.type === 'runner') {
       m.sprintTimer += dt;
       m.sprintCooldown -= dt;
@@ -127,27 +116,18 @@ function updateMonsters(dt) {
       }
     }
 
-    // =============================================
-    // ===== Ghost: 随机位置出现 =====
-    // =============================================
     if (m.type === 'ghost') {
       if (Math.random() < 0.05) {
         addParticles(m.x, m.y, 'rgba(52,152,219,0.3)', 1);
       }
     }
 
-    // =============================================
-    // ===== 移动 =====
-    // =============================================
     m.dist += speed * dt;
     const pos = getPositionOnPath(m.dist);
     m.x = pos.x;
     m.y = pos.y;
     m.bobPhase += dt * 6;
 
-    // =============================================
-    // ===== 到达终点 =====
-    // =============================================
     if (m.dist >= totalPathLength) {
       lives--;
       carrotHP = lives;
@@ -160,9 +140,6 @@ function updateMonsters(dt) {
       continue;
     }
 
-    // =============================================
-    // ===== 3. Fire: 血量归零时自爆 =====
-    // =============================================
     if (m.type === 'fire' && m.hp <= 0 && !m.hasExploded) {
       m.hasExploded = true;
 
@@ -222,12 +199,9 @@ function updateMonsters(dt) {
       addFloatingText(fireX, fireY - 60, '变成Slime!', '#2ecc71');
 
       monsters.splice(i, 1);
-      continue;  // ===== 关键修改：添加这行，跳过普通死亡逻辑 =====
+      continue;
     }
 
-    // =============================================
-    // ===== 普通死亡（血量归零） =====
-    // =============================================
     if (m.hp <= 0) {
       const monsterType = m.type;
       const hasSummoned = m.hasSummoned;
@@ -238,9 +212,6 @@ function updateMonsters(dt) {
       
       monsters.splice(i, 1);
       
-      // =============================================
-      // ===== 4. Boss: 召唤一波怪物（改进版） =====
-      // =============================================
       if (monsterType === 'boss' && !hasSummoned) {
         const config = DIFFICULTY_CONFIG[difficulty];
         const hpScale = (1 + (currentWave - 1) * 0.12) * config.hpMult;
@@ -325,19 +296,15 @@ function updateMonsters(dt) {
 
   updateUI();
 }
-// =============================================
-// ===== 伤害处理函数（Tank 护盾优先） =====
-// =============================================
+
 function dealDamageToMonster(monster, damage) {
   if (monster.hp <= 0) return;
   
-  // ===== Tank: 护盾优先承受伤害 =====
   if (monster.type === 'tank' && monster.shieldActive && monster.shieldHP > 0) {
     const shieldDamage = Math.min(damage, monster.shieldHP);
     monster.shieldHP -= shieldDamage;
     damage -= shieldDamage;
     
-    // 护盾被击破
     if (monster.shieldHP <= 0) {
       monster.shieldActive = false;
       addFloatingText(monster.x, monster.y - 40, '护盾破碎!', '#3498db');
@@ -345,7 +312,6 @@ function dealDamageToMonster(monster, damage) {
     }
   }
   
-  // 剩余伤害扣血
   if (damage > 0) {
     monster.hp -= damage;
   }
@@ -364,9 +330,7 @@ function drawMonsters() {
     ctx.save();
     ctx.translate(x, y);
 
-    // ===== Tank: 护盾效果（仅当护盾激活且护盾HP>0） =====
     if (m.type === 'tank' && m.shieldActive && m.shieldHP > 0) {
-      // 护盾光圈
       const glow = ctx.createRadialGradient(0, 0, s * 0.5, 0, 0, s * 1.6);
       glow.addColorStop(0, 'rgba(52,152,219,0)');
       glow.addColorStop(0.4, 'rgba(52,152,219,0.15)');
@@ -383,7 +347,6 @@ function drawMonsters() {
       ctx.arc(0, 0, s + 6, 0, Math.PI * 2);
       ctx.stroke();
 
-      // ===== 护盾血条（在怪物上方） =====
       const shieldRatio = m.shieldHP / m.maxShieldHP;
       const barW = s * 2.2, barH = 3;
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -397,7 +360,6 @@ function drawMonsters() {
       ctx.fillText('🛡️', 0, -s - 22);
     }
 
-    // ===== Runner: 冲刺效果 =====
     if (m.type === 'runner' && m.isSprinting) {
       ctx.shadowColor = '#ff6b6b';
       ctx.shadowBlur = 20;
@@ -408,7 +370,6 @@ function drawMonsters() {
       ctx.stroke();
     }
 
-    // ===== Boss: 特殊光效 =====
     if (m.type === 'boss') {
       const glow = ctx.createRadialGradient(0, 0, s * 0.3, 0, 0, s * 1.8);
       glow.addColorStop(0, 'rgba(255,215,0,0)');
@@ -425,7 +386,6 @@ function drawMonsters() {
       ctx.fillText('👾 BOSS', 0, -s - 16);
     }
 
-    // ===== Fire: 火焰特效 =====
     if (m.type === 'fire') {
       const flicker = Math.sin(animTime * 10 + m.bobPhase) * 0.2 + 0.8;
       const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 1.5 * flicker);
@@ -438,7 +398,6 @@ function drawMonsters() {
       ctx.fill();
     }
 
-    // ===== Ghost: 幽灵特效 =====
     if (m.type === 'ghost') {
       const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 1.4);
       glow.addColorStop(0, 'rgba(142,68,173,0.1)');
@@ -455,14 +414,12 @@ function drawMonsters() {
       ctx.fillText('👻', 0, -s - 12);
     }
 
-    // 阴影
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath();
     ctx.ellipse(0, s + 2 - bob, s * 0.8, 4, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 减速效果
     if (m.slowTimer > 0) {
       ctx.fillStyle = 'rgba(52,152,219,0.2)';
       ctx.beginPath();
@@ -470,7 +427,6 @@ function drawMonsters() {
       ctx.fill();
     }
 
-    // ===== 绘制怪物图片 =====
     const img = getMonsterImage(m.type);
     if (img && img.complete && img.naturalWidth > 0) {
       let drawSize = 48;
@@ -486,41 +442,23 @@ function drawMonsters() {
 
     ctx.restore();
 
-    // =============================================
-    // ===== 血条绘制（Tank 有两层血条） =====
-    // =============================================
-    
-    // ----- 护盾血条（Tank 专属，在怪物上方） -----
-    // 已经在上面绘制了，这里不再重复
-    
-    // ----- 生命血条（所有怪物都有） -----
-    // 如果是 Tank 且有护盾，生命血条在护盾血条下方
-    // 如果是 Tank 护盾已碎，生命血条在正常位置
-    // 如果是其他怪物，生命血条在正常位置
-    
     const hpBarYOffset = (m.type === 'tank' && m.shieldActive && m.shieldHP > 0) ? 
-                          -s - 14 + bob :   // 有护盾时，生命血条在护盾血条下方
-                          -s - 10 + bob;    // 无护盾时，正常位置
+                          -s - 14 + bob :
+                          -s - 10 + bob;
     
     const barW = s * 2.2, barH = 4;
     const hpRatio = m.hp / m.maxHp;
 
-    // 背景
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.fillRect(x - barW / 2, y + hpBarYOffset, barW, barH);
 
-    // 生命值（Tank 护盾存在时，生命血条显示为绿色，但表示的是生命值）
-    // 如果是 Tank 且有护盾，生命血条显示为较暗的绿色，表示生命值尚未受损
     if (m.type === 'tank' && m.shieldActive && m.shieldHP > 0) {
-      // 护盾存在时，生命血条显示为暗绿色（表示生命值满但被护盾保护）
       ctx.fillStyle = '#27ae60';
       ctx.fillRect(x - barW / 2, y + hpBarYOffset, barW * hpRatio, barH);
-      // 添加边框高亮
       ctx.strokeStyle = 'rgba(46,204,113,0.3)';
       ctx.lineWidth = 0.5;
       ctx.strokeRect(x - barW / 2, y + hpBarYOffset, barW, barH);
     } else {
-      // 正常血条颜色
       ctx.fillStyle = hpRatio > 0.5 ? '#2ecc71' : hpRatio > 0.25 ? '#f39c12' : '#e74c3c';
       ctx.fillRect(x - barW / 2, y + hpBarYOffset, barW * hpRatio, barH);
     }
@@ -529,7 +467,6 @@ function drawMonsters() {
     ctx.lineWidth = 0.5;
     ctx.strokeRect(x - barW / 2, y + hpBarYOffset, barW, barH);
 
-    // ===== 行为状态标签 =====
     if (m.type === 'runner' && m.isSprinting) {
       ctx.fillStyle = 'rgba(255,107,107,0.6)';
       ctx.font = '8px Arial';

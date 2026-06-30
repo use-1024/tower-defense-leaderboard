@@ -347,7 +347,6 @@ body {
     <div class="top-item"><span class="icon">🥕</span><span>生命:</span><span class="value" id="lives-num">10</span></div>
     <div class="top-item"><span class="icon">👾</span><span>怪物:</span><span class="value" id="monster-num">0</span></div>
     <div style="display:flex;gap:8px;">
-      <!-- ===== 新增：排行榜按钮 ===== -->
       <button id="rank-btn" onclick="toggleRankPanel()">🏆 排行榜</button>
       <button id="pause-btn" class="control-btn" onclick="togglePause()" title="暂停">⏸️ 暂停</button>
       <button id="exit-btn" class="control-btn exit" onclick="confirmExit()" title="退出">🚪 退出</button>
@@ -370,7 +369,6 @@ body {
     <button id="start-btn" onclick="startWave()">开始下一波</button>
   </div>
 
-  <!-- ===== 新增：排行榜面板 ===== -->
   <div id="rank-panel">
     <button class="close-btn" onclick="toggleRankPanel()">✕</button>
     <h3>🏆 排行榜</h3>
@@ -423,35 +421,33 @@ body {
   <div id="wave-announce"><span id="wave-text"></span></div>
 </div>
 
-<!-- ==================== 所有 script 标签添加 type="module" ==================== -->
+<!-- ==================== 所有脚本改为普通 script ==================== -->
 <!-- Config -->
-<script type="module" src="config/constants.js"></script>
-<script type="module" src="config/towers.js"></script>
-<script type="module" src="config/monsters.js"></script>
-<script type="module" src="config/waves.js"></script>
-<script type="module" src="config/map.js"></script>
-<script type="module" src="config/api.js"></script>
+<script src="config/constants.js"></script>
+<script src="config/towers.js"></script>
+<script src="config/monsters.js"></script>
+<script src="config/waves.js"></script>
+<script src="config/map.js"></script>
+<script src="config/api.js"></script>
 
 <!-- Game Source -->
-<script type="module" src="src/state.js"></script>
-<script type="module" src="src/utils.js"></script>
-<script type="module" src="src/path.js"></script>
-<script type="module" src="src/particles.js"></script>
-<script type="module" src="src/map.js"></script>
-<script type="module" src="src/towers.js"></script>
-<script type="module" src="src/monsters.js"></script>
-<script type="module" src="src/projectiles.js"></script>
-<script type="module" src="src/input.js"></script>
-<script type="module" src="src/ui.js"></script>
-<script type="module" src="src/menu.js"></script>
-<script type="module" src="src/game.js"></script>
+<script src="src/state.js"></script>
+<script src="src/utils.js"></script>
+<script src="src/path.js"></script>
+<script src="src/particles.js"></script>
+<script src="src/map.js"></script>
+<script src="src/towers.js"></script>
+<script src="src/monsters.js"></script>
+<script src="src/projectiles.js"></script>
+<script src="src/input.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/menu.js"></script>
+<script src="src/game.js"></script>
 
-<!-- ===== 新增：排行榜功能脚本（也改为 type="module"） ===== -->
-<script type="module">
-import { API_ENDPOINTS } from './config/api.js';
-
+<!-- ===== 排行榜功能脚本（普通脚本） ===== -->
+<script>
 // 切换排行榜面板显示
-window.toggleRankPanel = function() {
+function toggleRankPanel() {
   const panel = document.getElementById('rank-panel');
   if (panel.classList.contains('show')) {
     panel.classList.remove('show');
@@ -459,38 +455,50 @@ window.toggleRankPanel = function() {
     panel.classList.add('show');
     loadLeaderboard();
   }
-};
+}
 
 // 加载排行榜数据
-async function loadLeaderboard() {
+function loadLeaderboard() {
   const listEl = document.getElementById('rank-list');
   listEl.innerHTML = '<div class="rank-loading">加载中...</div>';
   
   try {
-    const response = await fetch(`${API_ENDPOINTS.LEADERBOARD}?level=1&limit=10`);
-    if (!response.ok) throw new Error('请求失败');
-    
-    const data = await response.json();
-    
-    if (data.scores && data.scores.length > 0) {
-      listEl.innerHTML = data.scores.map((item, index) => `
-        <div class="rank-item">
-          <span class="rank-pos">#${index + 1}</span>
-          <span class="rank-name">${item.player}</span>
-          <span class="rank-score">💰${item.gold}</span>
-          <span style="color:#aaa;font-size:12px;">第${item.wave}波</span>
-        </div>
-      `).join('');
-    } else {
-      listEl.innerHTML = '<div class="rank-empty">暂无排行数据</div>';
-    }
+    // 使用全局 API_ENDPOINTS
+    const url = (typeof API_ENDPOINTS !== 'undefined') 
+      ? API_ENDPOINTS.LEADERBOARD + '?level=1&limit=10'
+      : '/api/leaderboard?level=1&limit=10';
+      
+    fetch(url)
+      .then(response => {
+        if (!response.ok) throw new Error('请求失败');
+        return response.json();
+      })
+      .then(data => {
+        if (data.scores && data.scores.length > 0) {
+          listEl.innerHTML = data.scores.map((item, index) => `
+            <div class="rank-item">
+              <span class="rank-pos">#${index + 1}</span>
+              <span class="rank-name">${item.player}</span>
+              <span class="rank-score">💰${item.gold}</span>
+              <span style="color:#aaa;font-size:12px;">第${item.wave}波</span>
+            </div>
+          `).join('');
+        } else {
+          listEl.innerHTML = '<div class="rank-empty">暂无排行数据</div>';
+        }
+      })
+      .catch(error => {
+        console.error('加载排行榜失败:', error);
+        listEl.innerHTML = '<div class="rank-empty">加载失败，请稍后重试</div>';
+      });
   } catch (error) {
     console.error('加载排行榜失败:', error);
     listEl.innerHTML = '<div class="rank-empty">加载失败，请稍后重试</div>';
   }
 }
 
-// 暴露给全局，以便在游戏结束时调用
+// 暴露到全局
+window.toggleRankPanel = toggleRankPanel;
 window.loadLeaderboard = loadLeaderboard;
 </script>
 </body>

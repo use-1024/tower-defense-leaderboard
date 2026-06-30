@@ -1,6 +1,6 @@
 // ===================== MAIN MENU =====================
 let selectedDifficulty = null;
-let selectedLevel = 1;  // ===== 第五步：新增关卡选择 =====
+let selectedLevel = 1;
 
 const DIFFICULTY_CONFIG = {
   easy:   { name: '简单', gold: 350, lives: 15, hpMult: 0.7, speedMult: 0.85},
@@ -18,7 +18,6 @@ function showMainMenu() {
   document.getElementById('menu-start-btn').classList.add('disabled');
   selectedDifficulty = null;
   clearDifficultySelection();
-  // ===== 第五步：重置关卡选择 =====
   selectedLevel = 1;
   document.querySelectorAll('.level-btn').forEach(b => {
     b.classList.remove('selected');
@@ -58,7 +57,6 @@ function selectDifficulty(diff) {
   checkReadyToStart();
 }
 
-// ===== 第五步：关卡选择函数 =====
 function selectLevel(level) {
   selectedLevel = level;
   document.querySelectorAll('.level-btn').forEach(b => {
@@ -82,7 +80,6 @@ function clearDifficultySelection() {
   if (descEl) descEl.textContent = '请先选择难度';
 }
 
-// ===== 第五步：修改检查函数，同时检查难度和关卡 =====
 function checkReadyToStart() {
   const startBtn = document.getElementById('menu-start-btn');
   if (selectedDifficulty && selectedLevel) {
@@ -92,11 +89,9 @@ function checkReadyToStart() {
   }
 }
 
-// ===== 第五步：修改开始函数，传入关卡 =====
 function startGameFromMenu() {
   if (!selectedDifficulty || !selectedLevel) return;
   hideMainMenu();
-  // 先设置地图数据
   if (typeof setLevel === 'function') {
     setLevel(selectedLevel);
   }
@@ -106,3 +101,13 @@ function startGameFromMenu() {
 function exitGame() {
   window.close();
 }
+
+// ===================== 暴露函数到全局 =====================
+window.selectDifficulty = selectDifficulty;
+window.selectLevel = selectLevel;
+window.startGameFromMenu = startGameFromMenu;
+window.exitGame = exitGame;
+window.showMainMenu = showMainMenu;
+window.hideMainMenu = hideMainMenu;
+window.checkReadyToStart = checkReadyToStart;
+window.clearDifficultySelection = clearDifficultySelection;

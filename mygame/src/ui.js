@@ -1,6 +1,5 @@
 // src/ui.js
-// ===================== 导入API配置 =====================
-import { API_ENDPOINTS } from '../config/api.js';
+// ===================== 移除 import，直接使用全局 API_ENDPOINTS =====================
 
 // ===================== UI =====================
 function updateUI() {
@@ -15,9 +14,6 @@ function updateUI() {
   }
 }
 
-// ===================== ❌ 删除原有的 getApiUrl() 函数 =====================
-// 不再需要这个函数，直接使用导入的 API_ENDPOINTS
-
 // ===================== 提交成绩 =====================
 function submitScoreAndShowRanking() {
   const input = document.getElementById('player-name-input');
@@ -28,16 +24,13 @@ function submitScoreAndShowRanking() {
     return;
   }
 
-  // 🔥 获取提交按钮
   const submitBtn = document.getElementById('submit-score-btn');
   
-  // 🔥 如果按钮已禁用，直接返回（防止重复点击）
   if (submitBtn && submitBtn.disabled) {
     console.log('⛔ 已经提交过了，请勿重复点击');
     return;
   }
 
-  // 🔥 立即禁用按钮
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = '⏳ 提交中...';
@@ -54,8 +47,11 @@ function submitScoreAndShowRanking() {
     difficulty: difficulty || 'normal'
   };
 
-  // ✅ 使用导入的 API_ENDPOINTS.SCORE
-  fetch(API_ENDPOINTS.SCORE, {
+  const url = (typeof API_ENDPOINTS !== 'undefined') 
+    ? API_ENDPOINTS.SCORE 
+    : '/api/score';
+
+  fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(scoreData)
@@ -63,7 +59,6 @@ function submitScoreAndShowRanking() {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        // ✅ 提交成功
         if (submitBtn) {
           submitBtn.disabled = true;
           submitBtn.textContent = '✅ 已提交';
@@ -74,9 +69,7 @@ function submitScoreAndShowRanking() {
         alert(`✅ ${data.message}\n排名：第 ${data.rank} 名`);
         showRankingOnly(data.rank);
       } else {
-        // ❌ 后端返回错误
         alert(`ℹ️ ${data.message}`);
-        // 🔥 如果是"已提交过更好的成绩"，也禁用按钮（因为已经提交过了）
         if (data.message && data.message.includes('已提交过更好的成绩')) {
           if (submitBtn) {
             submitBtn.disabled = true;
@@ -86,7 +79,6 @@ function submitScoreAndShowRanking() {
             submitBtn.style.cursor = 'default';
           }
         } else {
-          // 其他错误，恢复按钮
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.textContent = '🏆 提交成绩';
@@ -97,9 +89,7 @@ function submitScoreAndShowRanking() {
       }
     })
     .catch(err => {
-      // 🌐 网络错误
-      alert(`❌ 无法连接到服务器！\n\n请确保后端已启动：\n${API_ENDPOINTS.SCORE}\n\n错误：${err.message}`);
-      // 网络错误时恢复按钮（让用户稍后重试）
+      alert(`❌ 无法连接到服务器！\n\n请确保后端已启动\n\n错误：${err.message}`);
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.textContent = '🏆 提交成绩';
@@ -118,8 +108,11 @@ function showRankingOnly(myRank) {
 
   container.innerHTML = `<p style="color:#aaa;">⏳ 加载排行榜中...</p>`;
 
-  // ✅ 使用导入的 API_ENDPOINTS.LEADERBOARD
-  fetch(`${API_ENDPOINTS.LEADERBOARD}?level=${level}&limit=10`)
+  const url = (typeof API_ENDPOINTS !== 'undefined') 
+    ? API_ENDPOINTS.LEADERBOARD + `?level=${level}&limit=10`
+    : `/api/leaderboard?level=${level}&limit=10`;
+
+  fetch(url)
     .then(res => {
       if (!res.ok) throw new Error('网络请求失败');
       return res.json();
@@ -343,7 +336,6 @@ function drawRangeCircle() {
 }
 
 // ===================== 暴露函数到全局 =====================
-// 确保这些函数可以在 HTML 的 onclick 中调用
 window.submitScoreAndShowRanking = submitScoreAndShowRanking;
 window.showRankingOnly = showRankingOnly;
 window.showOverlay = showOverlay;

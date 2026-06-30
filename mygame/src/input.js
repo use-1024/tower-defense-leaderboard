@@ -52,19 +52,15 @@ function onCanvasClick(e) {
     return;
   }
 
-  // ===== 第三步：障碍物改为有血量，需要多次点击 =====
   if (state === 3) {
     const key = col + ',' + row;
     const hpData = obstacleHP[key];
 
     if (hpData) {
-      // 扣血
       hpData.current--;
 
-      // 播放点击特效
       addParticles(col * TILE + TILE/2, row * TILE + TILE/2, '#ffd700', 5);
 
-      // 如果血量归零，清除障碍物
       if (hpData.current <= 0) {
         const reward = 20 + Math.floor(Math.random() * 20);
         gold += reward;
@@ -77,7 +73,6 @@ function onCanvasClick(e) {
         addFloatingText(col * TILE + TILE/2, row * TILE + TILE/2 - 20, '+' + reward + '💰', '#ffd700');
         updateUI();
       } else {
-        // 血量还没归零，显示打击反馈
         addFloatingText(col * TILE + TILE/2, row * TILE + TILE/2 - 30, '💥', '#ff6b6b');
       }
       return;
@@ -111,3 +106,10 @@ function deselectAll() {
 function clearTowerBtnSelection() {
   document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
 }
+
+// ===================== 暴露函数到全局 =====================
+window.onMouseMove = onMouseMove;
+window.onCanvasClick = onCanvasClick;
+window.selectTower = selectTower;
+window.deselectAll = deselectAll;
+window.clearTowerBtnSelection = clearTowerBtnSelection;
