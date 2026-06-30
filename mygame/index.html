@@ -338,18 +338,24 @@ body {
   padding: 20px 0;
 }
 
-/* ===== 游戏规则面板样式 ===== */
+/* ===== 游戏规则面板样式（修复：使用 display:flex 直接控制显示） ===== */
 #rules-overlay {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  display: flex;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   justify-content: center;
   align-items: center;
   background: rgba(0,0,0,0.75);
   z-index: 25;
   padding: 20px;
+  /* 默认隐藏：使用 display:none，显示时由 JS 改为 flex */
+  display: none;
 }
-#rules-overlay.hidden { display: none; }
+#rules-overlay.show {
+  display: flex !important;
+}
 
 #rules-content {
   background: linear-gradient(160deg, #1e1145 0%, #2d1b69 40%, #1a1145 100%);
@@ -467,7 +473,7 @@ body {
         <button class="level-btn" id="level-2" onclick="selectLevel(2)">第二关</button>
       </div>
 
-      <!-- ===== 新增：游戏规则按钮 ===== -->
+      <!-- ===== 游戏规则按钮 ===== -->
       <div style="margin-top:14px; margin-bottom:14px;">
         <button onclick="showRules()" style="
           background: rgba(255,255,255,0.08);
@@ -492,8 +498,8 @@ body {
     </div>
   </div>
 
-  <!-- ===== 游戏规则面板 ===== -->
-  <div id="rules-overlay" class="hidden">
+  <!-- ===== 游戏规则面板（修复：使用 show 类控制显示） ===== -->
+  <div id="rules-overlay">
     <div id="rules-content">
       <button class="close-rules-btn" onclick="hideRules()">✕</button>
 
@@ -501,45 +507,45 @@ body {
 
       <div style="font-size: 14px; line-height: 1.8; color: #ccc;">
         <div class="rule-section">
-          <span class="rule-label">🎯 目标：</span>
+          <span class="rule-label"> 目标：</span>
           建造炮塔，阻止怪物沿着固定路径前进吃掉终点的萝卜！
         </div>
 
         <div class="rule-section">
-          <span class="rule-label">🏗️ 炮塔：</span>
+          <span class="rule-label"> 炮塔：</span>
         </div>
         <ul>
-          <li>🍼 <strong style="color: #e74c3c;">瓶子塔</strong> — 基础攻击塔，稳定输出</li>
-          <li>❄️ <strong style="color: #3498db;">冰冻星</strong> — 减速敌人，控制节奏</li>
-          <li>🚀 <strong style="color: #e67e22;">火箭炮</strong> — 高伤害，有溅射效果</li>
+          <li> <strong style="color: #e74c3c;">瓶子塔</strong> — 基础攻击塔，稳定输出</li>
+          <li> <strong style="color: #e74c3c;">冰冻星</strong> — 减速敌人，控制节奏</li>
+          <li> <strong style="color: #e74c3c;">火箭炮</strong> — 高伤害，有溅射效果</li>
         </ul>
 
         <div class="rule-section">
-          <span class="rule-label">👾 怪物（共6种）：</span>
+          <span class="rule-label"> 怪物（共6种）：</span>
         </div>
         <ul>
-          <li>🟢 <strong style="color: #2ecc71;">史莱姆</strong> — 基础单位</li>
-          <li>🟡 <strong style="color: #f1c40f;">飞毛腿</strong> — 速度快，会冲刺</li>
-          <li>🟣 <strong style="color: #9b59b6;">铁甲怪</strong> — 自带护盾，优先承受伤害</li>
-          <li>🔴 <strong style="color: #e74c3c;">大Boss</strong> — 死亡时召唤3~6个小怪</li>
-          <li>👻 <strong style="color: #8e44ad;">幽灵</strong> — 随机出现在路径中途</li>
-          <li>🔥 <strong style="color: #e67e22;">火怪</strong> — 死亡时自爆后变成史莱姆</li>
+          <li> <strong style="color: #2ecc71;">史莱姆</strong> — 基础单位</li>
+          <li> <strong style="color: #2ecc71;">飞毛腿</strong> — 速度快，会冲刺</li>
+          <li> <strong style="color: #2ecc71;">铁甲怪</strong> — 自带护盾，优先承受伤害</li>
+          <li> <strong style="color: #2ecc71;">大Boss</strong> — 死亡时召唤3~6个小怪</li>
+          <li> <strong style="color: #2ecc71;">幽灵</strong> — 随机出现在路径中途</li>
+          <li> <strong style="color: #2ecc71;">火怪</strong> — 死亡时自爆后变成史莱姆</li>
         </ul>
 
         <div class="rule-section">
-          <span class="rule-label">💎 障碍物：</span>
+          <span class="rule-label"> 障碍物：</span>
           点击地图上的障碍物清除（石头3次、树木2次、花丛1次），可获得 <strong style="color: #ffd700;">20~40 金币</strong>。
         </div>
 
         <div class="rule-section">
-          <span class="rule-label">🏆 胜负 &amp; 排行榜：</span>
+          <span class="rule-label"> 胜负 &amp; 排行榜：</span>
           胜利条件 — 抵御所有波次；失败条件 — 生命值归零。
           通关后可在胜利弹窗中输入名字提交成绩到 <strong style="color: #ffd700;">云端排行榜</strong>，
           排名规则：<strong style="color: #fff;">波次越高越靠前，波次相同则金币多者优先</strong>。
         </div>
 
         <div style="margin-top: 14px; text-align: center; color: #ffd700; font-weight: bold; font-size: 15px;">
-          🍀 祝你好运，守护好你的萝卜！
+           祝你好运，守护好你的萝卜！
         </div>
       </div>
     </div>

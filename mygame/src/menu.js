@@ -106,14 +106,14 @@ function exitGame() {
 function showRules() {
   const overlay = document.getElementById('rules-overlay');
   if (overlay) {
-    overlay.classList.remove('hidden');
+    overlay.classList.add('show');
   }
 }
 
 function hideRules() {
   const overlay = document.getElementById('rules-overlay');
   if (overlay) {
-    overlay.classList.add('hidden');
+    overlay.classList.remove('show');
   }
 }
 
