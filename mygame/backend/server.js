@@ -154,33 +154,51 @@ app.post('/api/score', (req, res) => {
 //  🆕 托管前端静态文件
 // ============================================================
 
-// ✅ server.js 在 /app/backend/ 下，index.html 在 /app/ 下
-const frontendPath = path.join(__dirname, '..');
+// ============================================================
+//  🆕 托管前端静态文件
+// ============================================================
 
-console.log('📁 前端文件路径:', frontendPath);
-console.log('📄 index.html 是否存在:', fs.existsSync(path.join(frontendPath, 'index.html')));
+// ✅ 当 Root Directory = mygame/backend 时
+// __dirname = /app (backend 目录)
+// 但 index.html 在 mygame/ 目录下，需要找到它
 
-// 如果 index.html 不存在，尝试其他路径
-let finalPath = frontendPath;
-if (!fs.existsSync(path.join(finalPath, 'index.html'))) {
-  finalPath = '/app';
-  console.log('📁 尝试路径 /app');
+// 尝试多个可能的路径
+const possiblePaths = [
+  '/app/mygame',           // Railway 上的路径
+  '/app/../mygame',        // 相对路径
+  path.join(__dirname, '..', 'mygame'),  // 相对于 backend
+  path.join(__dirname, '..'),            // 上一级
+  '/app',                  // 根目录
+  __dirname,               // 当前目录
+];
+
+let finalPath = null;
+for (const p of possiblePaths) {
+  try {
+    const testPath = path.join(p, 'index.html');
+    console.log(`🔍 检查路径: ${testPath}`);
+    if (fs.existsSync(testPath)) {
+      finalPath = p;
+      console.log(`✅ 找到 index.html 在: ${finalPath}`);
+      break;
+    }
+  } catch (e) {
+    console.log(`❌ 路径错误: ${p}`);
+  }
 }
-if (!fs.existsSync(path.join(finalPath, 'index.html'))) {
-  finalPath = __dirname;
-  console.log('📁 尝试路径 __dirname');
+
+if (!finalPath) {
+  console.log('❌ 所有路径都找不到 index.html！');
+  finalPath = '/app';
 }
 
 console.log('📁 最终前端文件路径:', finalPath);
 console.log('📄 index.html 是否存在:', fs.existsSync(path.join(finalPath, 'index.html')));
 
-// 托管静态文件
 app.use(express.static(finalPath));
 
-// ✅ 所有非 API 请求返回 index.html（作为兜底）
+// ✅ 所有非 API 请求返回 index.html
 app.get('*', (req, res) => {
-  console.log(`📄 处理前端路由: ${req.path}`);
-  // 如果是 API 请求，返回 404
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API 未找到' });
   }
@@ -188,16 +206,10 @@ app.get('*', (req, res) => {
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).send(`index.html not found at ${indexPath}`);
+    res.status(404).send(`
+      <h1>404 - index.html not found</h1>
+      <p>查找路径: ${finalPath}</p>
+      <p>完整路径: ${indexPath}</p>
+    `);
   }
-});
-
-// ============================================================
-//  启动服务器
-// ============================================================
-
-app.listen(PORT, () => {
-  console.log(`🏆 排行榜服务器已启动: http://localhost:${PORT}`);
-  console.log(`📊 数据文件: ${DATA_FILE}`);
-  console.log(`📁 前端文件路径: ${finalPath}`);
 });
