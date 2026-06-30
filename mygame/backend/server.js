@@ -139,8 +139,27 @@ app.get('/api/all', (req, res) => {
   res.json(readData());
 });
 
-// 启动服务器
+// ============================================================
+//  🆕 新增：托管前端静态文件
+// ============================================================
+
+// 前端文件在 mygame/ 目录下，server.js 在 mygame/backend/ 下
+const frontendPath = path.join(__dirname, '..');
+app.use(express.static(frontendPath));
+
+// 所有非 API 请求返回 index.html（支持前端路由）
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  }
+});
+
+// ============================================================
+//  启动服务器
+// ============================================================
+
 app.listen(PORT, () => {
   console.log(`🏆 排行榜服务器已启动: http://localhost:${PORT}`);
   console.log(`📊 数据文件: ${DATA_FILE}`);
+  console.log(`📁 前端文件: ${frontendPath}`);
 });
