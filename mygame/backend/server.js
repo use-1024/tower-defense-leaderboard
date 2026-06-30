@@ -143,29 +143,82 @@ app.get('/api/all', (req, res) => {
 // ============================================================
 
 // ============================================================
-//  🆕 托管前端静态文件
+//  🆕 托管前端静态文件（调试模式）
 // ============================================================
 
-// ✅ 在 Railway 上，文件被解压到 /app，所有内容在 /app/mygame/ 下
-const frontendPath = '/app/mygame';
+const fs = require('fs');
+const path = require('path');
 
-// 如果本地开发，使用相对路径
-if (process.env.NODE_ENV !== 'production' || !fs.existsSync(frontendPath)) {
-  // 本地开发时，尝试相对路径
-  const localPath = path.join(__dirname, '..', 'mygame');
-  if (fs.existsSync(path.join(localPath, 'index.html'))) {
-    frontendPath = localPath;
+// 打印当前目录内容，帮助我们找到 index.html
+console.log('🔍 当前工作目录:', process.cwd());
+console.log('🔍 __dirname:', __dirname);
+
+// 列出 /app 目录内容（如果存在）
+try {
+  const appDir = '/app';
+  if (fs.existsSync(appDir)) {
+    console.log('📂 /app 目录内容:', fs.readdirSync(appDir));
   }
+} catch (e) {
+  console.log('无法读取 /app:', e.message);
 }
 
-console.log('📁 前端文件路径:', frontendPath);
+// 列出当前目录内容
+try {
+  console.log('📂 当前目录内容:', fs.readdirSync(__dirname));
+} catch (e) {
+  console.log('无法读取当前目录:', e.message);
+}
+
+// 查找 index.html
+function findIndexHtml(startPath) {
+  try {
+    const items = fs.readdirSync(startPath);
+    for (const item of items) {
+      const fullPath = path.join(startPath, item);
+      try {
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          // 检查目录下是否有 index.html
+          const testPath = path.join(fullPath, 'index.html');
+          if (fs.existsSync(testPath)) {
+            return fullPath;
+          }
+          // 递归查找
+          const result = findIndexHtml(fullPath);
+          if (result) return result;
+        }
+      } catch (e) {
+        // 忽略
+      }
+    }
+  } catch (e) {
+    // 忽略
+  }
+  return null;
+}
+
+let frontendPath = findIndexHtml('/app');
+if (!frontendPath) {
+  frontendPath = findIndexHtml(__dirname);
+}
+if (!frontendPath) {
+  frontendPath = '/app';
+}
+
+console.log('📁 找到的前端文件路径:', frontendPath);
 console.log('📄 index.html 是否存在:', fs.existsSync(path.join(frontendPath, 'index.html')));
 
 app.use(express.static(frontendPath));
 
 // 根路径处理
 app.get('/', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+  const indexPath = path.join(frontendPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('index.html not found at ' + indexPath);
+  }
 });
 
 // 所有非 API 请求返回 index.html
@@ -173,5 +226,10 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return next();
   }
-  res.sendFile(path.join(frontendPath, 'index.html'));
+  const indexPath = path.join(frontendPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('File not found: ' + req.path);
+  }
 });
