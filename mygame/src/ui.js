@@ -23,7 +23,7 @@ function getApiUrl() {
   // ===== 生产环境（Railway） =====
   // ⚠️ 部署到 Railway 后，替换成你的实际地址！
   // 格式：https://你的项目名.up.railway.app
-  return 'https://你的项目名.up.railway.app';
+  return 'https://tower-defense-leaderboard-production.up.railway.app';
 }
 
 // ===================== 提交成绩 =====================
