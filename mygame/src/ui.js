@@ -1,3 +1,7 @@
+// src/ui.js
+// ===================== 导入API配置 =====================
+import { API_ENDPOINTS } from '../config/api.js';
+
 // ===================== UI =====================
 function updateUI() {
   document.getElementById('wave-num').textContent = currentWave + '/' + totalWaves;
@@ -11,20 +15,9 @@ function updateUI() {
   }
 }
 
-// ===================== 获取API地址 =====================
-function getApiUrl() {
-  const hostname = window.location.hostname;
-  
-  // 本地开发环境
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
-    return 'http://localhost:3000';
-  }
-  
-  // ===== 生产环境（Railway） =====
-  // ⚠️ 部署到 Railway 后，替换成你的实际地址！
-  // 格式：https://你的项目名.up.railway.app
-    return 'https://tower-defense-leaderboard-production.up.railway.app';
-}
+// ===================== ❌ 删除原有的 getApiUrl() 函数 =====================
+// 不再需要这个函数，直接使用导入的 API_ENDPOINTS
+
 // ===================== 提交成绩 =====================
 function submitScoreAndShowRanking() {
   const input = document.getElementById('player-name-input');
@@ -61,9 +54,8 @@ function submitScoreAndShowRanking() {
     difficulty: difficulty || 'normal'
   };
 
-  const API_URL = getApiUrl();
-
-  fetch(`${API_URL}/api/score`, {
+  // ✅ 使用导入的 API_ENDPOINTS.SCORE
+  fetch(API_ENDPOINTS.SCORE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(scoreData)
@@ -106,7 +98,7 @@ function submitScoreAndShowRanking() {
     })
     .catch(err => {
       // 🌐 网络错误
-      alert(`❌ 无法连接到服务器！\n\n请确保后端已启动：\nhttp://localhost:3000\n\n错误：${err.message}`);
+      alert(`❌ 无法连接到服务器！\n\n请确保后端已启动：\n${API_ENDPOINTS.SCORE}\n\n错误：${err.message}`);
       // 网络错误时恢复按钮（让用户稍后重试）
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -123,11 +115,11 @@ function showRankingOnly(myRank) {
   if (!container) return;
 
   const level = currentLevel || 1;
-  const API_URL = getApiUrl();
 
   container.innerHTML = `<p style="color:#aaa;">⏳ 加载排行榜中...</p>`;
 
-  fetch(`${API_URL}/api/leaderboard?level=${level}&limit=10`)
+  // ✅ 使用导入的 API_ENDPOINTS.LEADERBOARD
+  fetch(`${API_ENDPOINTS.LEADERBOARD}?level=${level}&limit=10`)
     .then(res => {
       if (!res.ok) throw new Error('网络请求失败');
       return res.json();
@@ -349,3 +341,18 @@ function drawRangeCircle() {
   ctx.lineWidth = 2;
   ctx.strokeRect(t.col*TILE+1, t.row*TILE+1, TILE-2, TILE-2);
 }
+
+// ===================== 暴露函数到全局 =====================
+// 确保这些函数可以在 HTML 的 onclick 中调用
+window.submitScoreAndShowRanking = submitScoreAndShowRanking;
+window.showRankingOnly = showRankingOnly;
+window.showOverlay = showOverlay;
+window.hideOverlay = hideOverlay;
+window.showTowerInfoPanel = showTowerInfoPanel;
+window.hideTowerInfo = hideTowerInfo;
+window.upgradeTower = upgradeTower;
+window.sellTower = sellTower;
+window.announceWave = announceWave;
+window.updateUI = updateUI;
+window.drawHoverPreview = drawHoverPreview;
+window.drawRangeCircle = drawRangeCircle;

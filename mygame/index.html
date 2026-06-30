@@ -265,6 +265,78 @@ body {
 }
 #pause-content button:hover { transform: scale(1.05); }
 #pause-content button.danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; }
+
+/* ===== 新增：排行榜按钮和面板样式 ===== */
+#rank-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 2px solid #ffd700;
+  background: rgba(255,215,0,0.15);
+  color: #ffd700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: bold;
+}
+#rank-btn:hover {
+  background: rgba(255,215,0,0.3);
+  transform: scale(1.05);
+}
+
+#rank-panel {
+  position: absolute;
+  top: 56px;
+  right: 10px;
+  width: 280px;
+  max-height: 400px;
+  background: rgba(26,17,69,0.95);
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: #fff;
+  z-index: 15;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+#rank-panel.show { display: block; }
+#rank-panel h3 {
+  color: #ffd700;
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+#rank-panel .rank-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 14px;
+}
+#rank-panel .rank-item .rank-pos { color: #ffd700; font-weight: bold; width: 30px; }
+#rank-panel .rank-item .rank-name { flex: 1; margin-left: 8px; }
+#rank-panel .rank-item .rank-score { color: #2ecc71; font-weight: bold; }
+#rank-panel .rank-empty {
+  text-align: center;
+  color: #888;
+  padding: 20px 0;
+}
+#rank-panel .close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+}
+#rank-panel .close-btn:hover { color: #fff; }
+#rank-panel .rank-loading {
+  text-align: center;
+  color: #aaa;
+  padding: 20px 0;
+}
 </style>
 </head>
 <body>
@@ -275,6 +347,8 @@ body {
     <div class="top-item"><span class="icon">🥕</span><span>生命:</span><span class="value" id="lives-num">10</span></div>
     <div class="top-item"><span class="icon">👾</span><span>怪物:</span><span class="value" id="monster-num">0</span></div>
     <div style="display:flex;gap:8px;">
+      <!-- ===== 新增：排行榜按钮 ===== -->
+      <button id="rank-btn" onclick="toggleRankPanel()">🏆 排行榜</button>
       <button id="pause-btn" class="control-btn" onclick="togglePause()" title="暂停">⏸️ 暂停</button>
       <button id="exit-btn" class="control-btn exit" onclick="confirmExit()" title="退出">🚪 退出</button>
     </div>
@@ -295,6 +369,16 @@ body {
     </div>
     <button id="start-btn" onclick="startWave()">开始下一波</button>
   </div>
+
+  <!-- ===== 新增：排行榜面板 ===== -->
+  <div id="rank-panel">
+    <button class="close-btn" onclick="toggleRankPanel()">✕</button>
+    <h3>🏆 排行榜</h3>
+    <div id="rank-list">
+      <div class="rank-loading">加载中...</div>
+    </div>
+  </div>
+
   <div id="main-menu-overlay">
     <div id="menu-content">
       <h1>保卫萝卜</h1>
@@ -306,14 +390,11 @@ body {
         <button class="diff-btn" id="diff-hard" onclick="selectDifficulty('hard')">困难</button>
       </div>
       <div id="diff-desc">请先选择难度</div>
-
-      <!-- ===== 新增：关卡选择 ===== -->
       <div class="section-label" style="margin-top:12px;">选择关卡</div>
       <div class="diff-buttons" style="margin-bottom:16px;">
         <button class="level-btn selected" id="level-1" onclick="selectLevel(1)">第一关</button>
         <button class="level-btn" id="level-2" onclick="selectLevel(2)">第二关</button>
       </div>
-
       <div class="menu-buttons" style="margin-top:20px;">
         <button class="menu-btn primary disabled" id="menu-start-btn" onclick="startGameFromMenu()">开始游戏</button>
         <button class="menu-btn secondary" onclick="exitGame()">退出</button>
@@ -342,25 +423,75 @@ body {
   <div id="wave-announce"><span id="wave-text"></span></div>
 </div>
 
+<!-- ==================== 所有 script 标签添加 type="module" ==================== -->
 <!-- Config -->
-<script src="config/constants.js"></script>
-<script src="config/towers.js"></script>
-<script src="config/monsters.js"></script>
-<script src="config/waves.js"></script>
-<script src="config/map.js"></script>
+<script type="module" src="config/constants.js"></script>
+<script type="module" src="config/towers.js"></script>
+<script type="module" src="config/monsters.js"></script>
+<script type="module" src="config/waves.js"></script>
+<script type="module" src="config/map.js"></script>
+<script type="module" src="config/api.js"></script>
 
 <!-- Game Source -->
-<script src="src/state.js"></script>
-<script src="src/utils.js"></script>
-<script src="src/path.js"></script>
-<script src="src/particles.js"></script>
-<script src="src/map.js"></script>
-<script src="src/towers.js"></script>
-<script src="src/monsters.js"></script>
-<script src="src/projectiles.js"></script>
-<script src="src/input.js"></script>
-<script src="src/ui.js"></script>
-<script src="src/menu.js"></script>
-<script src="src/game.js"></script>
+<script type="module" src="src/state.js"></script>
+<script type="module" src="src/utils.js"></script>
+<script type="module" src="src/path.js"></script>
+<script type="module" src="src/particles.js"></script>
+<script type="module" src="src/map.js"></script>
+<script type="module" src="src/towers.js"></script>
+<script type="module" src="src/monsters.js"></script>
+<script type="module" src="src/projectiles.js"></script>
+<script type="module" src="src/input.js"></script>
+<script type="module" src="src/ui.js"></script>
+<script type="module" src="src/menu.js"></script>
+<script type="module" src="src/game.js"></script>
+
+<!-- ===== 新增：排行榜功能脚本（也改为 type="module"） ===== -->
+<script type="module">
+import { API_ENDPOINTS } from './config/api.js';
+
+// 切换排行榜面板显示
+window.toggleRankPanel = function() {
+  const panel = document.getElementById('rank-panel');
+  if (panel.classList.contains('show')) {
+    panel.classList.remove('show');
+  } else {
+    panel.classList.add('show');
+    loadLeaderboard();
+  }
+};
+
+// 加载排行榜数据
+async function loadLeaderboard() {
+  const listEl = document.getElementById('rank-list');
+  listEl.innerHTML = '<div class="rank-loading">加载中...</div>';
+  
+  try {
+    const response = await fetch(`${API_ENDPOINTS.LEADERBOARD}?level=1&limit=10`);
+    if (!response.ok) throw new Error('请求失败');
+    
+    const data = await response.json();
+    
+    if (data.scores && data.scores.length > 0) {
+      listEl.innerHTML = data.scores.map((item, index) => `
+        <div class="rank-item">
+          <span class="rank-pos">#${index + 1}</span>
+          <span class="rank-name">${item.player}</span>
+          <span class="rank-score">💰${item.gold}</span>
+          <span style="color:#aaa;font-size:12px;">第${item.wave}波</span>
+        </div>
+      `).join('');
+    } else {
+      listEl.innerHTML = '<div class="rank-empty">暂无排行数据</div>';
+    }
+  } catch (error) {
+    console.error('加载排行榜失败:', error);
+    listEl.innerHTML = '<div class="rank-empty">加载失败，请稍后重试</div>';
+  }
+}
+
+// 暴露给全局，以便在游戏结束时调用
+window.loadLeaderboard = loadLeaderboard;
+</script>
 </body>
 </html>

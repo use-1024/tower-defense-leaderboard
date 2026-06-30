@@ -8,8 +8,8 @@ const getApiBaseUrl = () => {
   }
   
   // 生产环境：使用Railway后端地址
-  // ⚠️ 部署后替换成你的实际后端地址
-  return 'https://your-backend-url.railway.app';
+  // ✅ 已替换为你的真实后端地址
+  return 'https://tower-defense-leaderboard-production.up.railway.app';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
