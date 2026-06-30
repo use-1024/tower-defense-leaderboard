@@ -1,6 +1,6 @@
 // ===================== GAME LOOP & CONTROL =====================
 
-// ===== 新增：重新计算路径（切换关卡后调用） =====
+// ===== 重新计算路径（切换关卡后调用） =====
 function recalculatePath() {
   waypointPixels = currentWaypoints.map(w => ({ x: w.x * TILE + TILE/2, y: w.y * TILE + TILE/2 }));
   pathSegments = [];

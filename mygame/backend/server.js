@@ -38,11 +38,11 @@ function writeData(data) {
 }
 
 // ============================================================
-//  📥 请求日志中间件
+//  请求日志中间件
 // ============================================================
 app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.path}`);
-  console.log('📦 Body:', req.body);
+  console.log(`${req.method} ${req.path}`);
+  console.log('body:', req.body);
   next();
 });
 
@@ -57,13 +57,13 @@ app.get('/api/health', (req, res) => {
 
 // ----- 获取所有数据（调试用） -----
 app.get('/api/all', (req, res) => {
-  console.log('✅ /api/all 被调用');
+  console.log('/api/all 被调用');
   res.json(readData());
 });
 
 // ----- 获取排行榜 -----
 app.get('/api/leaderboard', (req, res) => {
-  console.log('✅ /api/leaderboard 被调用');
+  console.log('/api/leaderboard 被调用');
   const level = parseInt(req.query.level) || 1;
   const limit = parseInt(req.query.limit) || 10;
 
@@ -81,7 +81,7 @@ app.get('/api/leaderboard', (req, res) => {
 
 // ----- 提交成绩 -----
 app.post('/api/score', (req, res) => {
-  console.log('✅ /api/score 被调用');
+  console.log('/api/score 被调用');
   const { player, level, wave, gold, lives, difficulty } = req.body;
 
   if (!player || player.trim() === '') {
@@ -123,7 +123,7 @@ app.post('/api/score', (req, res) => {
 
     if (isBetter) {
       data.scores[existingIndex] = newScore;
-      message = '🎉 刷新了你的最佳成绩！';
+      message = '刷新了你的最佳成绩！';
       isNewRecord = true;
     } else {
       return res.json({
@@ -134,7 +134,7 @@ app.post('/api/score', (req, res) => {
     }
   } else {
     data.scores.push(newScore);
-    message = '🏆 成绩已提交！';
+    message = '成绩已提交！';
     isNewRecord = true;
   }
 

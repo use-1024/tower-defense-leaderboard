@@ -1,5 +1,4 @@
 // src/ui.js
-// ===================== 移除 import，直接使用全局 API_ENDPOINTS =====================
 
 // ===================== UI =====================
 function updateUI() {
@@ -27,13 +26,13 @@ function submitScoreAndShowRanking() {
   const submitBtn = document.getElementById('submit-score-btn');
   
   if (submitBtn && submitBtn.disabled) {
-    console.log('⛔ 已经提交过了，请勿重复点击');
+    console.log('已经提交过了，请勿重复点击');
     return;
   }
 
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ 提交中...';
+    submitBtn.textContent = ' 提交中...';
     submitBtn.style.opacity = '0.5';
     submitBtn.style.cursor = 'not-allowed';
   }
@@ -61,19 +60,19 @@ function submitScoreAndShowRanking() {
       if (data.success) {
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.textContent = '✅ 已提交';
+          submitBtn.textContent = '已提交';
           submitBtn.style.background = 'linear-gradient(135deg,#27ae60,#2ecc71)';
           submitBtn.style.opacity = '0.7';
           submitBtn.style.cursor = 'default';
         }
-        alert(`✅ ${data.message}\n排名：第 ${data.rank} 名`);
+        alert(` ${data.message}\n排名：第 ${data.rank} 名`);
         showRankingOnly(data.rank);
       } else {
-        alert(`ℹ️ ${data.message}`);
+        alert(` ${data.message}`);
         if (data.message && data.message.includes('已提交过更好的成绩')) {
           if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.textContent = '✅ 已提交';
+            submitBtn.textContent = ' 已提交';
             submitBtn.style.background = 'linear-gradient(135deg,#27ae60,#2ecc71)';
             submitBtn.style.opacity = '0.7';
             submitBtn.style.cursor = 'default';
@@ -81,7 +80,7 @@ function submitScoreAndShowRanking() {
         } else {
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = '🏆 提交成绩';
+            submitBtn.textContent = ' 提交成绩';
             submitBtn.style.opacity = '1';
             submitBtn.style.cursor = 'pointer';
           }
@@ -89,10 +88,10 @@ function submitScoreAndShowRanking() {
       }
     })
     .catch(err => {
-      alert(`❌ 无法连接到服务器！\n\n请确保后端已启动\n\n错误：${err.message}`);
+      alert(` 无法连接到服务器！\n\n请确保后端已启动\n\n错误：${err.message}`);
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = '🏆 提交成绩';
+        submitBtn.textContent = ' 提交成绩';
         submitBtn.style.opacity = '1';
         submitBtn.style.cursor = 'pointer';
       }
@@ -106,7 +105,7 @@ function showRankingOnly(myRank) {
 
   const level = currentLevel || 1;
 
-  container.innerHTML = `<p style="color:#aaa;">⏳ 加载排行榜中...</p>`;
+  container.innerHTML = `<p style="color:#aaa;"> 加载排行榜中...</p>`;
 
   const url = (typeof API_ENDPOINTS !== 'undefined') 
     ? API_ENDPOINTS.LEADERBOARD + `?level=${level}&limit=10`
@@ -154,7 +153,7 @@ function showRankingOnly(myRank) {
       container.innerHTML = html;
     })
     .catch(err => {
-      container.innerHTML = `<p style="color:#e74c3c;">⚠️ 无法加载排行榜: ${err.message}</p>`;
+      container.innerHTML = `<p style="color:#e74c3c;"> 无法加载排行榜: ${err.message}</p>`;
     });
 }
 
@@ -166,14 +165,14 @@ function showOverlay(type) {
 
   if (type === 'gameover') {
     content.innerHTML = `
-      <h1>💔 游戏结束 💔</h1>
+      <h1> 游戏结束 </h1>
       <h2>萝卜被吃掉了...</h2>
       <p>你坚持到了第 ${currentWave} 波</p>
       <button onclick="restartGame()">重新开始</button>
     `;
   } else if (type === 'victory') {
     content.innerHTML = `
-      <h1>🎉 胜利 🎉</h1>
+      <h1> 胜利 </h1>
       <h2>萝卜安全了！</h2>
       <p>恭喜你成功抵御了 ${totalWaves} 波怪物！</p>
       <p>剩余生命: ${lives} | 剩余金币: ${gold}</p>
@@ -186,15 +185,15 @@ function showOverlay(type) {
       <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
         <button id="submit-score-btn" onclick="submitScoreAndShowRanking()" 
                 style="background:linear-gradient(135deg,#2ecc71,#27ae60); color:#fff; padding:10px 20px; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">
-          🏆 提交成绩
+           提交成绩
         </button>
         <button onclick="showRankingOnly()" 
                 style="background:linear-gradient(135deg,#3498db,#2980b9); color:#fff; padding:10px 20px; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">
-          📊 查看排行榜
+           查看排行榜
         </button>
         <button onclick="restartGame()" 
                 style="background:linear-gradient(135deg,#ffd700,#f39c12); color:#1a1145; padding:10px 20px; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">
-          🔄 再来一局
+           再来一局
         </button>
       </div>
       <div id="ranking-result" style="margin-top:16px;"></div>

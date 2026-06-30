@@ -17,7 +17,7 @@ function getObstacleMaxHP(col, row) {
   return 1;
 }
 
-// ========== 判断障碍物类型（根据行列号） ==========
+// ========== 判断障碍物类型==========
 function getObstacleType(col, row) {
   const val = (col * 7 + row * 13) % 3;
   return val; // 0=石头, 1=树木, 2=花丛
@@ -67,7 +67,7 @@ function isAdjacentToPath(col, row) {
   return false;
 }
 
-// ===== 修改后的 drawMap() 函数（图片 48×48 直接绘制） =====
+// ===== drawMap() 函数=====
 function drawMap() {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
@@ -304,7 +304,7 @@ function drawObstacle(x, y, type, col, row) {
 
 // ===== 萝卜（使用图片） =====
 const imgCarrot = new Image();
-imgCarrot.src = 'assets/carrot.png';  // 改成你的实际文件名
+imgCarrot.src = 'assets/carrot.png';  
 
 function drawCarrot() {
   const endWP = currentWaypoints[currentWaypoints.length - 1];
